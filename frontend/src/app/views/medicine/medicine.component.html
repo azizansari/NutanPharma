@@ -1,0 +1,289 @@
+
+<div class="notification-alert" *ngFor="let alert of alertsDismiss" style="position: absolute; left: 0; right: 0; margin: auto; z-index: 999999 !important; width: 20%;">
+  <alert [type]="alert.type" dismissOnTimeout="5000" [dismissible]="true"
+    ><strong>{{alert?.message}}</strong></alert
+  >
+</div>
+<div
+  bsModal
+  #myModal="bs-modal"
+  class="modal fade"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="myModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header card-header">
+        <h4 class="modal-title">Add New Medicine</h4>
+        <button
+          type="button"
+          class="close"
+          (click)="myModal.hide()"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div
+        class="modal-body"
+        id="medicineAddForm"
+        [formGroup]="medicineAddForm"
+      >
+        <div class="form-group row" style="margin: 20px">
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="company">Status</label>
+              <select
+                id="select1"
+                name="select1"
+                class="form-control"
+                placeholder="Select Status"
+                (change)="onChang($event)"
+              >
+                <option value="0">Select Status</option>
+                <option [value]="true">Available</option>
+                <option [value]="false">Not Available</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="company">Category</label>
+              <ng-select class="form-control custom" formControlName="categories" required>
+                <ng-option
+                  *ngFor="let category of categories"
+                  [value]="category?.category"
+                >
+                  {{ category?.category }}
+                </ng-option>
+              </ng-select>
+              <!-- <select
+                id="select1"
+                name="select1"
+                class="form-control"
+                formControlName="categories"
+                placeholder ="Select Categories"
+              >
+                <option [value]="category?.category" *ngFor="let category of categories">
+                  {{ category?.category }}
+                </option>
+              </select> -->
+            </div>
+            <div class="form-group">
+              <label for="company">Packing</label>
+              <input
+                type="text"
+                class="form-control"
+                id="packing"
+                formControlName="packing"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="company">Expiry</label>
+              <input
+                type="date"
+                class="form-control"
+                id="expiry"
+                formControlName="expiry"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="company">Rate</label>
+              <input
+                type="number"
+                class="form-control"
+                id="rate"
+                placeholder=""
+                formControlName="rate"
+                required
+              />
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="company">Product Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="company"
+                placeholder="Product Name"
+                formControlName="productName"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="company">Brand</label>
+              <ng-select class="form-control custom" formControlName="brand" required>
+                <ng-option *ngFor="let brand of brands" [value]="brand?.brand">
+                  {{ brand?.brand }}
+                </ng-option>
+              </ng-select>
+              <!-- <select
+                id="select1"
+                name="select1"
+                class="form-control"
+                formControlName="brand"
+              >
+                <option value="0">Select Brands</option>
+                <option [value]="brand?.brand" *ngFor="let brand of brands">{{brand?.brand}}</option>
+    
+              </select> -->
+            </div>
+            <div class="form-group">
+              <label for="company">Batch No.</label>
+              <input
+                type="text"
+                class="form-control"
+                id="batch no"
+                formControlName="batchNo"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="company">Quantity</label>
+              <input
+                type="text"
+                class="form-control"
+                id="quantity"
+                formControlName="quantity"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="company">MRP</label>
+              <input
+                type="number"
+                class="form-control"
+                id="MRP"
+                formControlName="mrp"
+                required
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button
+          type="submit"
+          class="btn btn-primary col-md-3"
+          (click)="submit()"
+          type="submit"
+          form:submit
+        >
+          <i class="fa fa-dot-circle-o"></i> Add
+        </button>
+        <button type="reset" class="btn btn-danger col-md-3" (click)="reSet()">
+          <i class="fa fa-ban"></i> Reset
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary col-md-3"
+          (click)="myModal.hide()"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+<div class="card" style="margin-top: 30px;">
+  <div class="card-header">
+    <h6>Available Medicines</h6>
+  </div>
+  <div class="card-body">
+    <div class="header row" style="margin-bottom: 20px">
+      <div class="input-group col-md-3">
+        <input
+          type="text"
+          id="input1-group2"
+          name="input1-group2"
+          class="form-control"
+          placeholder="Search Medicines"
+          [(ngModel)]="term"
+        />
+        <span class="input-group-append">
+          <button type="button" class="btn btn-primary btn-pill">
+            <i class="fa fa-search"></i> Search
+          </button>
+        </span>
+      </div>
+      <div class="col-md-3">
+        <button
+          type="button"
+          class="btn btn-secondary btn-pill mr-1"
+          data-toggle="modal"
+          (click)="myModal.show()"
+        >
+          Add New Medicine
+        </button>
+      </div>
+    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Product Name</th>
+          <th>Packing</th>
+          <th>Batch No.</th>
+          <th>Expiry</th>
+          <th>Quantity</th>
+          <th>Brand</th>
+          <th>Category</th>
+          <th>MRP</th>
+          <th>Rate</th>
+          <th>status</th>
+          <th>update</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let medicine of medicines | filter:term | paginate
+        : {
+            itemsPerPage: 10,
+            currentPage: p,
+            totalItems: medicines.length
+          }"
+        >
+          <td>{{ medicine?.productName }}</td>
+          <td>{{ medicine?.packing }}</td>
+          <td>{{ medicine?.batchNo }}</td>
+          <td>{{ medicine?.expiry | amDateFormat: "DD/MM/YYYY" }}</td>
+          <td>{{ medicine?.quantity }}</td>
+          <td>{{ medicine?.brand }}</td>
+          <td>{{ medicine?.categories }}</td>
+          <td>{{ medicine?.mrp }}</td>
+          <td>{{ medicine?.rate }}</td>
+          <td>
+            <span
+              class="badge"
+              [class.badge-success]="medicine?.status"
+              [class.badge-danger]="!medicine?.status"
+              >{{ medicine?.status ? "Avail" : "NotAvail" }}</span
+            >
+          </td>
+          <td>
+            <div class="update row">
+              <button class="btn btn-sm btn-secondary btn-pill">Edit</button>
+              <button class="btn btn-sm btn-danger btn-pill">
+                <span
+                  class="cil-trash"
+                  (click)="deleteMed(medicine._id)"
+                ></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer">
+    <pagination-controls
+      (pageChange)="handlePageChange($event)"
+    ></pagination-controls>
+  </div>
+</div>

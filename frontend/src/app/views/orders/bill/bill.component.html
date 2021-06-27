@@ -1,0 +1,154 @@
+<div class="receipt-content">
+
+    <div class="row">
+      <div class="container bootstrap snippets bootdey">
+
+      <div class="col-md-12">
+        <div class="invoice-wrapper">
+          <div class="watermark" style="display: flex;justify-content: center; position: absolute; z-index: 5; top: 20px; left: 400px;">
+            <img src="assets/nutanPharmlogo.svg" alt="" style="width: 150px; height: 150px;">
+          </div>
+          <div class="payment-details">
+            <div class="row">
+              <div class="col-sm-8">
+                <h2>M/s Nutan Pharma</h2>
+                <p>
+                   In front of Shreenath HP petrol pump<br >
+                   Old Bhopal Road Ashta - 466116<br>
+                  Mob. No. 7869559992 <br >
+                  <br>
+                </p>
+              </div>
+              <div class="col-sm-4 text-right">
+                <strong>DL No.</strong> : 20/695/30/2020 <br>
+                <strong>Date</strong> : {{ bill?.createdAt | amDateFormat: "DD/MM/YYYY" }}
+
+
+              </div>
+            </div>
+          </div>
+
+          <div class="line-items">
+            <div class="invoice-heading row" style="border: 1px solid #c8ced3;; margin-left: 1px; margin-right: 1px; ">
+              <div class="item1 col-sm-4" style="padding-top: 5px; padding-bottom: 5px;">
+                <strong>Customer Name</strong> : {{ bill?.customerName }}<br />
+                <strong>Contact No.</strong>  : {{ bill?.customerContact }}
+              </div>
+              <div class="item2 col-sm-4" style="padding: 12px; border-left: 1px solid #c8ced3; ; border-right: 1px solid #c8ced3; ; text-align: center;" >
+                <h4>INVOICE</h4>
+              </div>
+              <div class="item3 col-sm-4" style="padding-top: 5px; padding-bottom: 5px;">
+               <strong>Invoice No.</strong> : NP{{ bill?.invoiceId }}
+              </div>
+            </div>
+
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>S. No.</th>
+                  <th>Product Name</th>
+                  <th>Packing</th>
+                  <th>Batch No.</th>
+                  <th>Expiry</th>
+                  <th>Quantity</th>
+                  <th>MRP</th>
+                  <th>GST</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of items; let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ item?.medicine }}</td>
+                  <td>{{ item?.pcaking }}</td>
+                  <td>{{ item?.batchNo }}</td>
+                  <td>{{ item?.expiry | amDateFormat: "MMM YYYY" }}</td>
+                  <td>{{ item?.orderQuantity }}</td>
+                  <td>{{ item?.mrp }}</td>
+                  <td>{{bill?.gstRate}} %</td>
+                  <td>{{ item?.total | currency: "INR" }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="row" style="border: 2px solid #c8ced3;; margin: 1px; margin-top: 0px;">
+              <div class="col-sm-6 text-left">
+                <p >
+
+                  A/C No. : 20223859460<br/>
+                  IFSC Code : SBIN0030498, State Bank India
+
+                </p>
+                <div class="terms" style="margin-top: 5rem; margin-bottom: 10px;">
+                  <strong>
+                    Terms & Conditions
+                  </strong><br />
+                  Goods once sold will not be taken back or exchanged.
+                  Bills not paid due date will attract 24% interest.
+                  All disputes subjected to ASHTA Jurisdiction only.
+                  Prescribed Sales  Tax declaration will be given.
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <table class="table" style="margin: 0px; padding: 0px;">
+                  <thead>
+                    <tr>
+                      <th>Sub Total</th>
+                      <th>
+                        {{ bill?.subTotal | currency: "INR" }}
+                      </th>
+                    </tr>
+                    <tr *ngIf="bill?.gstRate">
+                      <th>GST @ {{ bill?.gstRate }} %</th>
+                      <th>
+                        {{ bill?.gstAmount  | currency: "INR" }}
+                      </th>
+                    </tr>
+                    <tr *ngIf="bill?.discount" >
+                      <th>Discount</th>
+                      <th>
+                        {{ bill?.discount  | currency: "INR" }}
+                      </th>
+                    </tr>
+                    <tr>
+                      <th>Grand Total</th>
+                      <th>
+                        {{ bill?.grandTotal | currency: "INR" }}
+                      </th>
+                    </tr>
+                    <tr>
+                      <th>Paid Amount</th>
+                      <th>
+                        {{ bill?.paidAmount | currency: "INR" }}
+                      </th>
+                    </tr>
+                    <tr *ngIf="bill?.dueAmount">
+                      <th>Due Amount</th>
+                      <th>
+                        {{ bill?.dueAmount | currency: "INR" }}
+                      </th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+   
+              
+            </div>
+
+
+            <div class="row">
+
+
+            </div>
+            <span>This is an auto generated invoice no signature required</span>
+            <div class="print">
+              <button class="btn btn-secondary" (click)="printBill()">print</button>
+              <button class="btn btn-success" (click)="goBack()">Back</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">Copyright © Nutan Pharma</div>
+      </div>
+    </div>
+  </div>
+</div>

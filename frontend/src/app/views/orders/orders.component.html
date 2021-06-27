@@ -1,0 +1,383 @@
+
+
+<div class="notification-alert" *ngFor="let alert of alertsDismiss" style="position: absolute; left: 0; right: 0; margin: auto; z-index: 999999 !important; width: 20%;">
+  <alert [type]="alert.type" dismissOnTimeout="5000" [dismissible]="true"
+    ><strong>{{alert?.message}}</strong></alert
+  >
+</div>
+
+<div
+  bsModal
+  #largeModal="bs-modal"
+  class="modal fade"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="myModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header card-header">
+        <h4 class="modal-title">New Order</h4>
+        <button
+          type="button"
+          class="close"
+          (click)="largeModal.hide()"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group row" style="margin: 20px">
+          <div class="col-md-3">
+            <label for="date-input">Order Date</label>
+            <input
+              #orderDateIN
+              class="form-control"
+              id="date-input"
+              type="date"
+              name="date-input"
+              placeholder="date"
+              [(ngModel)]="orderDate"
+            />
+          </div>
+        </div>
+        <div class="form-group row" style="margin: 20px">
+          <div class="form-group col-md-5">
+            <label for="cutomerName">Customer Name</label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Customer Name"
+              [(ngModel)]="customerName"
+              name="customerName"
+              id="customerName"
+            />
+          </div>
+          <div class="form-group col-md-5">
+            <label for="customerContact">Contact</label>
+            <input
+              type="number"
+              class="form-control"
+              id="customerContact"
+              placeholder="Contact"
+              [(ngModel)]="customerContact"
+            />
+          </div>
+        </div>
+        <div class="table" style="border-bottom: 2px solid grey">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>MRP</th>
+                <th>Available Quantity</th>
+                <th>Quantity</th>
+                <th>Total</th>
+                <th>Add</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="form-group">
+                    <ng-select
+                      #select1
+                      name="select1"
+                      class="form-control custom"
+                      (change)="onChange($event)"
+                    >
+                      <ng-option
+                        *ngFor="let medicine of medicines"
+                        [value]="medicine?._id"
+
+                      >
+                        {{ medicine?.productName }}
+                      </ng-option>
+                    </ng-select>
+
+                    <!-- <select
+                      #select1
+                      name="select1"
+                      class="form-control"
+                      (change)="onChange($event)"
+                    >
+                      <option value="0">Select Medicine</option>
+                      <option
+                        [value]="medicine?._id"
+                        *ngFor="let medicine of medicines"
+                      >
+                        {{ medicine?.productName }}
+                      </option>
+                    </select> -->
+                  </div>
+                </td>
+                <td>
+                  <div class="form-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      disabled
+                      [(ngModel)]="rate"
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div class="form-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      disabled
+                      [(ngModel)]="quantity"
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div class="form-group">
+                    <input
+                      type="number"
+                      class="form-control"
+                      [(ngModel)]="orderQuantity"
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div class="form-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      disabled
+                      [(ngModel)]="total"
+                    />
+                  </div>
+                </td>
+                <td>
+                  <Button class="btn btn-success" (click)="onAdd()"
+                    ><span class="cil-plus"></span
+                  ></Button>
+                </td>
+              </tr>
+              <tr *ngFor="let orderitem of orderList">
+                <td>{{ orderitem?.medicine }}</td>
+                <td>{{ orderitem?.rate }}</td>
+                <td></td>
+                <td>{{ orderitem?.orderQuantity }}</td>
+                <td>{{ orderitem?.total }}</td>
+                <td>
+                  <button
+                    class="btn btn-danger"
+                    (click)="removeItem(orderitem?.medicine_id)"
+                  >
+                    <span class="cil-trash"></span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="form-group row" style="margin: 20px">
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="subtotal">Sub Total</label>
+              <input
+                type="text"
+                class="form-control"
+                id="subtotal"
+                disabled
+                [(ngModel)]="subTotal"
+              />
+            </div>
+            <div class="form-group">
+              <label for="gst">GST</label>
+              <input
+                type="number"
+                class="form-control"
+                id="gst"
+                placeholder="GST %"
+                [(ngModel)]="gstRate"
+              />
+            </div>
+            <div class="form-group">
+              <label for="total">Total</label>
+              <input
+                type="text"
+                class="form-control"
+                id="total"
+                disabled
+                [(ngModel)]="gstTotal"
+              />
+            </div>
+            <div class="form-group">
+              <label for="discount">Discount (in %)</label>
+              <input
+                type="number"
+                class="form-control"
+                id="discount"
+                placeholder="Discount %"
+                [(ngModel)]="discount"
+              />
+            </div>
+            <div class="form-group">
+              <label for="grandtotal">Grand Total</label>
+              <input
+                type="text"
+                class="form-control"
+                id="grangtotal"
+                disabled
+                [(ngModel)]="grandTotal"
+              />
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="paidamount">Paid Amount</label>
+              <input
+                type="number"
+                class="form-control"
+                id="paidamount"
+                placeholder="Amount"
+                [(ngModel)]="paidAmount"
+              />
+            </div>
+            <div class="form-group">
+              <label for="dueamount">Due Amount</label>
+              <input
+                type="text"
+                class="form-control"
+                id="dueamount"
+                disabled
+                [(ngModel)]="dueAmount"
+              />
+            </div>
+            <div class="form-group">
+              <label for="paymentType">Payment Type</label>
+              <select
+                id="select1"
+                name="select1"
+                class="form-control"
+                [(ngModel)]="paymentMethod"
+              >
+                <option value="0">Please select</option>
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+                <option value="UPI">UPI</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button
+          type="submit"
+          class="btn btn-primary col-md-3"
+          (click)="submit()"
+        >
+          <i class="fa fa-dot-circle-o"></i> Submit
+        </button>
+        <button type="reset" (click)="reSet()" class="btn btn-danger col-md-3">
+          <i class="fa fa-ban"></i> Reset
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary col-md-3"
+          (click)="largeModal.hide()"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+<div class="card" style="margin-top: 30px">
+  <div class="card-header">
+    <h6>Order datails</h6>
+  </div>
+  <div class="card-body">
+    <div class="header row" style="margin-bottom: 20px">
+      <div class="input-group col-md-3">
+        <input
+          type="text"
+          id="input1-group2"
+          name="input1-group2"
+          class="form-control"
+          placeholder="Search Orders"
+          [(ngModel)]="term"
+        />
+        <span class="input-group-append">
+          <button type="button" class="btn btn-primary btn-pill">
+            <i class="fa fa-search"></i> Search
+          </button>
+        </span>
+      </div>
+      <button
+        type="button"
+        class="btn btn-pill btn-secondary mr-1 col-md-3"
+        data-toggle="modal"
+        (click)="largeModal.show()"
+      >
+        New Order
+      </button>
+    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>S.No.</th>
+          <th>Invoice Id</th>
+          <th>Order Date</th>
+          <th>Customer Name</th>
+          <th>Contact</th>
+          <th>Payment status</th>
+          <th>update</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="
+            let order of orders
+              | filter: term
+              | paginate
+                : {
+                    itemsPerPage: 10,
+                    currentPage: p,
+                    totalItems: orders.length
+                  };
+            let i = index
+          "
+        >
+          <td>{{ i + 1 }}</td>
+          <td>{{ order?.invoiceId }}</td>
+          <td>{{ order?.createdAt | amDateFormat: "DD/MM/YYYY" }}</td>
+          <td>{{ order?.customerName }}</td>
+          <td>{{ order?.customerContact }}</td>
+          <td>{{ order?.paymentType }}</td>
+          <td>
+            <div class="update row">
+              <button
+                class="btn btn-sm btn-secondary btn-pill"
+                (click)="toGetPrint(order?._id)"
+              >
+                Print
+              </button>
+              <button
+                class="btn btn-sm btn-danger btn-pill"
+                (click)="deleteOrder(order?._id)"
+              >
+                <span class="cil-trash"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer">
+    <pagination-controls
+      (pageChange)="handlePageChange($event)"
+    ></pagination-controls>
+  </div>
+</div>

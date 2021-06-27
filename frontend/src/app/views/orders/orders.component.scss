@@ -1,0 +1,26 @@
+
+.ng-select.custom ::ng-deep .ng-dropdown-panel  {
+    box-sizing: border-box;
+    cursor: pointer;
+    display: block;
+    margin-top: 8px;
+    margin-left: -12px;
+    background: white;
+    border: 1px solid #e4e7ea;
+    min-width: 150px;
+    border-radius: 4px;
+    border-top: none;
+
+}
+
+.ng-select.custom ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option:hover {
+    box-sizing: border-box;
+    cursor: pointer;
+    display: block;
+    background: #f0f3f5;
+}
+.ng-select.custom ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+    cursor: pointer;
+    padding-left: 15px;
+    padding: 6px;
+}

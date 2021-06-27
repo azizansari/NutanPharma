@@ -1,0 +1,68 @@
+<div class="app-body">
+  <main class="main d-flex align-items-center">
+    <div class="container">
+
+      <div class="row">
+        <div class="col-md-8 mx-auto">
+          <div class="card-group">
+            <div class="card p-4">
+              <div class="card-body">
+                <form [formGroup]="loginForm">
+                  <h1>Login</h1>
+                  <p class="text-muted">Sign In to your account</p>
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"
+                        ><i class="icon-user"></i
+                      ></span>
+                    </div>
+                    <input
+                      formControlName="username"
+                      type="text"
+                      class="form-control"
+                      placeholder="Username"
+                      required
+                    />
+                  </div>
+                  <div class="input-group mb-4">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"
+                        ><i class="icon-lock"></i
+                      ></span>
+                    </div>
+                    <input
+                      formControlName="password"
+                      type="password"
+                      class="form-control"
+                      placeholder="Password"
+                      required
+                    />
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <button
+                        type="button"
+                        class="btn btn-primary px-4"
+                        (click)="isAuth()"
+                      >
+                        Login
+                      </button>
+                    </div>
+                    <div class="col-6 text-right">
+                      <button type="button" class="btn btn-link px-0">
+                        Forgot password?
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="watermark" style="display: flex; justify-content: center;">
+        <img src="assets/nutanPharmaversion.svg" alt="" height="300px" width="250px">
+    </div>
+    </div>
+  </main>
+</div>

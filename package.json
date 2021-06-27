@@ -1,0 +1,53 @@
+{
+  "name": "node-backend",
+  "version": "0.0.0",
+  "private": true,
+  "author": "Zeeshan A <mohammad.z@cisinlabs.com>",
+  "productName": "Nutan Pharma",
+  "scripts": {
+    "start": "electron .",
+    "dev": "nodemon ./bin/www",
+    "buildinst": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "main": "main.js",
+  "dependencies": {
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "~4.16.0",
+    "http-errors": "~1.6.2",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.20",
+    "mongoose": "^5.7.5",
+    "mongose": "0.0.2-security",
+    "morgan": "^1.9.1",
+    "nodemon": "^1.19.2",
+    "parse-error": "^0.2.0",
+    "passport": "^0.4.0",
+    "rest-api-errors": "^1.2.1"
+  },
+  "devDependencies": {
+    "electron": "^12.0.0",
+    "electron-builder": "^22.10.5",
+    "electron-packager": "^15.2.0",
+    "electron-rebuild": "^2.3.5"
+  },
+  "build": {
+    "appId": "Nutan",
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "",
+      "requestedExecutionLevel": "requireAdministrator"
+    },
+    "nsis": {
+      "installerIcon": "",
+      "uninstallerIcon": "",
+      "uninstallDisplayName": "nutanp",
+      "license": "./README.md",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
