@@ -409,8 +409,9 @@ export class DashboardComponent implements OnInit {
   getBrands() {
     this.brandServ.getBrands().subscribe((res: Brand) => {
       this.brands = res.data;
+
       console.log("brands: >>>>>>>>>>>>", res);
-      this.totalBrand = this.brands.length > 0 ? this.brands.length : 0;
+      this.totalBrand = res['total']
     });
   }
 
@@ -419,7 +420,7 @@ export class DashboardComponent implements OnInit {
       console.log("medicines: >>>>>>>>>>>>", res);
       this.medicines = res.data;
       console.log(this.medicines);
-      this.totalMed = this.medicines.length > 0 ? this.medicines.length : 0;
+      this.totalMed = res['total'];
     }, (err)=> {
       console.log(err)
     });
@@ -429,7 +430,7 @@ export class DashboardComponent implements OnInit {
     this.catgServ.getCategories().subscribe((res : Brand)=>{
       console.log('catg...', res)
       this.categories = res.data;
-      this.totalCat = this.categories.length > 0 ? this.categories.length : 0;
+      this.totalCat = res['total'];
 
     })
 

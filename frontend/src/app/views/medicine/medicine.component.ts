@@ -5,7 +5,7 @@ import { Brand, Category, Response } from "../../interfaces/response";
 import { BrandService } from "../../services/brand.service";
 import { CategoriesService } from "../../services/categories.service";
 import { MedicineService } from "../../services/medicine.service";
-
+declare let swal : any
 @Component({
   selector: "app-medicine",
   templateUrl: "./medicine.component.html",
@@ -18,9 +18,15 @@ export class MedicineComponent implements OnInit {
   alertsDismiss: any = [];
   p: number = 1;
   totalData;
+  searchTerm = '';
   status = false;
+  searchTermBrnd = ''
   public medicineAddForm: FormGroup;
   public submitted = false;
+  editMedicine ={}
+  config = {
+    backdrop : 'static'
+  }
   constructor(
     private medServ: MedicineService,
     private fb: FormBuilder,
@@ -31,38 +37,54 @@ export class MedicineComponent implements OnInit {
   ngOnInit(): void {
     this.getMedicines(1);
     this.buildForm();
-    this.getCategories();
-    this.getBrands();
   }
   @ViewChild("myModal") public myModal: ModalDirective;
+  @ViewChild("updateModal") public updateModal: ModalDirective;
 
   handlePageChange(event) {
     this.p = event;
     this.getMedicines(this.p)
   }
   getMedicines(page) {
-    this.medServ.getMedicines(10*page, 10).subscribe((res: Response) => {
+    this.medServ.getMedicines(`skip=${page*10-10}&limit=10`).subscribe((res: Response) => {
       console.log("res: >>>>>>>>>>>>", res);
       this.medicines = res.data;
       this.totalData = res['total']
       console.log(this.medicines);
     });
   }
-
-  getCategories() {
-    this.catgServ.getCategories().subscribe((res: Category) => {
+  searchMed(e){
+    this.medServ.getMedicines(`search=${this.searchTerm}&limit=10`).subscribe((res: Response) => {
+      console.log("res: >>>>>>>>>>>>", e, res);
+      this.medicines = res.data;
+      this.totalData = res['total']
+      this.p = 1
+      console.log(this.medicines);
+    });
+  }
+  getCategories(e) {
+    this.catgServ.getCategories(`search=${e.target.value}&limit=20`).subscribe((res: Category) => {
       this.categories = res.data;
     });
   }
-  getBrands() {
-    this.brandServ.getBrands().subscribe((res: Brand) => {
+  getBrands(e) {
+    this.brandServ.getBrands(`search=${e.target.value}&limit=20`).subscribe((res: Brand) => {
       this.brands = res.data;
+      console.log(this.brands, e.target.value  )
     });
   }
   deleteMed(id) {
-    this.medServ.deleteMedicine(id).subscribe((resp) => {
-      this.getMedicines(1);
-    });
+    swal({text : "Do you want to delete this Medicine", icon  : 'warning', buttons: true, dangerMode: true,})
+    .then((del)=>{
+      if(del){
+        this.medServ.deleteMedicine(id).subscribe((resp) => {
+          this.getMedicines(this.p);
+          swal({text : "Medicine deleted successfully", icon  : 'success'});
+        });
+
+      }
+    })
+
   }
   onChang(e) {
     if (e.target.value == "true") {
@@ -116,21 +138,52 @@ export class MedicineComponent implements OnInit {
       this.submitted = true;
       this.medServ.postMedicine(this.f).subscribe((resp) => {
         if (resp) {
-          this.getMedicines(1);
+          this.getMedicines(this.p);
           this.medicineAddForm.reset();
           this.myModal.hide();
-          this.alertNot("success", "Success");
+          swal({text : "Medicine Added successfully", icon  : 'success'});
         }
       });
       console.log(this.f);
     }
     else{
-      this.alertNot("danger", "Please enter all the details");
+      swal({text : "Please enter all the details", icon  : 'info'});
     }
   }
 
   reSet() {
     this.medicineAddForm.reset();
+  }
+  openUpdate(medicine){
+    this.updateModal.show()
+    console.log(">>>update", medicine)
+    this.editMedicine = medicine
+    this.editMedicine['expiry'] = new Date(this.editMedicine['expiry']).toISOString().split('T')[0];
+
+  }
+  submitUpdate(){
+    console.log(this.editMedicine)
+    if(this.editMedicine['quantity']<=0){
+      this.editMedicine['status'] = false
+    }
+    else{
+      this.editMedicine['status'] = true
+    }
+    this.medServ.updateMedicine(this.editMedicine['_id'], this.editMedicine).subscribe((res: Response) => {
+      console.log("res: >>>>>>>>>>>>", res);
+      if(res){
+        this.getMedicines(this.p);
+        this.updateModal.hide()
+        swal({
+          title : `${this.editMedicine['productName']}`,
+          text : `Updated successfully`, 
+          icon  : 'success'
+        });
+      }
+      else{
+      swal({text : "Please enter all the details", icon  : 'info'});
+      }
+    });
   }
   alertNot(type, message): void {
     this.alertsDismiss.push({

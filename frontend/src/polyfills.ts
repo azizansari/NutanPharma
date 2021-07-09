@@ -70,3 +70,7 @@ import 'zone.js/dist/zone';  // Included with Angular CLI.
  * APPLICATION IMPORTS
  */
 (window as any).global = window;
+import * as _swal from "sweetalert";
+import { SweetAlert } from "sweetalert/typings/core";
+const swal: SweetAlert = _swal as any;
+(window as any).swal = swal;

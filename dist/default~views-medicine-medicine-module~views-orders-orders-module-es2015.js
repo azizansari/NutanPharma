@@ -23,14 +23,17 @@ let MedicineService = class MedicineService {
         this.http = http;
         this.apiUrl = _environments_environment__WEBPACK_IMPORTED_MODULE_3__["environment"].apiUrl;
     }
-    getMedicines() {
-        return this.http.get(`${this.apiUrl}api/c/medicine`);
+    getMedicines(data) {
+        return this.http.get(`${this.apiUrl}api/c/medicine?${data}`);
     }
     postMedicine(payload) {
         return this.http.post(`${this.apiUrl}api/c/medicine/create`, payload);
     }
     deleteMedicine(id) {
         return this.http.delete(`${this.apiUrl}api/c/medicine/${id}`);
+    }
+    updateMedicine(id, payload) {
+        return this.http.put(`${this.apiUrl}api/c/medicine/${id}`, payload);
     }
 };
 MedicineService.ctorParameters = () => [

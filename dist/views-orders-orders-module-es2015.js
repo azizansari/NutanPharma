@@ -26,8 +26,8 @@ let OrdersService = class OrdersService {
     postOrders(payload) {
         return this.http.post(`${this.apiUrl}api/c/orders/create`, payload);
     }
-    getOrders() {
-        return this.http.get(`${this.apiUrl}api/c/orders`);
+    getOrders(data) {
+        return this.http.get(`${this.apiUrl}api/c/orders?${data}`);
     }
     deleteOrder(id) {
         return this.http.delete(`${this.apiUrl}api/c/orders/${id}`);
@@ -83,6 +83,9 @@ let OrdersComponent = class OrdersComponent {
         this.orders = [];
         this.alertsDismiss = [];
         this.submitted = false;
+        this.config = {
+            backdrop: 'static'
+        };
         // total1;
         this.subTotal = 0;
         this.listId = 1;
@@ -95,29 +98,41 @@ let OrdersComponent = class OrdersComponent {
         this.orderList = [];
     }
     ngOnInit() {
-        this.getMedicines();
-        this.getOrders();
+        this.getOrders(1);
         setTimeout(() => {
             console.log("this._orderDate: ", this._orderDate);
             this._orderDate.nativeElement.valueAsDate = new Date();
         }, 1000);
     }
-    getMedicines() {
-        this.medServ.getMedicines().subscribe((res) => {
-            console.log("res: >>>>>>>>>>>>", res);
+    getMedicines(e) {
+        this.medServ.getMedicines(`search=${e.target.value}`).subscribe((res) => {
             this.medicines = res.data;
-            console.log(this.medicines);
+            console.log(this.medicines, e.target.value);
         });
     }
-    getOrders() {
-        this.orderserv.getOrders().subscribe((res) => {
+    getOrders(page) {
+        this.orderserv.getOrders(`skip=${page * 10 - 10}&limit=10`).subscribe((res) => {
             this.orders = res.data;
+            this.totalOrders = res['total'];
             console.log(this.orders);
         });
     }
+    searchOrd(e) {
+        this.orderserv.getOrders(`search=${this.searchTerm}&limit=10`).subscribe((res) => {
+            this.orders = res['data'];
+            this.totalOrders = res['total'];
+            this.p = 1;
+        });
+    }
     deleteOrder(id) {
-        this.orderserv.deleteOrder(id).subscribe((resp) => {
-            this.getOrders();
+        swal({ text: "Do you want to delete this Bill", icon: 'warning', buttons: true, dangerMode: true, })
+            .then((del) => {
+            if (del) {
+                this.orderserv.deleteOrder(id).subscribe((resp) => {
+                    this.getOrders(1);
+                    swal({ text: "Bill deleted successfully", icon: 'success' });
+                });
+            }
         });
     }
     handlePageChange(event) {
@@ -161,31 +176,39 @@ let OrdersComponent = class OrdersComponent {
     }
     onAdd() {
         if (this.orderQuantity) {
-            this.localMedicine = {
-                brand: this.medicine.brand,
-                batchNo: this.medicine.batchNo,
-                expiry: this.medicine.expiry,
-                pcaking: this.medicine.packing,
-                medicine: this.medicine.productName,
-                mrp: this.rate,
-                orderQuantity: this.orderQuantity,
-                total: this.total,
-                medicine_id: this.medicine._id,
-            };
-            this.orderList.push(this.localMedicine);
-            console.log(this.orderList);
-            this.rate = "";
-            this.quantity = "";
-            this.orderQuantity = "";
-            this.subTotal =
-                this.subTotal + this.orderList[this.orderList.length - 1].total;
-            console.log(this.subTotal);
-            console.log("check>>>", this.select1);
-            this.subTotal = 0;
-            this.orderTotal();
+            if (this.orderQuantity <= this.medicine.quantity) {
+                this.localMedicine = {
+                    brand: this.medicine.brand,
+                    batchNo: this.medicine.batchNo,
+                    expiry: this.medicine.expiry,
+                    pcaking: this.medicine.packing,
+                    medicine: this.medicine.productName,
+                    mrp: this.rate,
+                    orderQuantity: this.orderQuantity,
+                    total: this.total,
+                    medicine_id: this.medicine._id,
+                    qty: this.medicine.quantity
+                };
+                this.orderList.push(this.localMedicine);
+                console.log(this.orderList);
+                this.rate = "";
+                this.quantity = "";
+                this.orderQuantity = "";
+                this.subTotal =
+                    this.subTotal + this.orderList[this.orderList.length - 1].total;
+                console.log(this.subTotal);
+                console.log("check>>>", this.select1);
+                this.subTotal = 0;
+                this.orderTotal();
+                var setQty = (this.medicine.quantity - this.localMedicine['orderQuantity']);
+                this.updateMed(this.medicine._id, setQty);
+            }
+            else {
+                swal({ text: "Insufficient Stock", icon: 'info' });
+            }
         }
         else {
-            this.alertNot("danger", "Please add order quantity");
+            swal({ text: "Please add order quantity", icon: 'info' });
         }
     }
     orderTotal() {
@@ -198,9 +221,13 @@ let OrdersComponent = class OrdersComponent {
         // this.gstTotal = this.subTotal;
     }
     removeItem(id) {
+        var removedItem = this.orderList.find((itm) => itm.medicine_id == id);
         this.orderList = this.orderList.filter((orderitem) => id != orderitem.medicine_id);
         this.subTotal = 0;
         this.orderTotal();
+        var updateQty = removedItem.qty;
+        console.log(">>update", removedItem);
+        this.updateMed(id, updateQty);
     }
     isValid(valObj) {
         var check = false;
@@ -218,18 +245,30 @@ let OrdersComponent = class OrdersComponent {
                     console.log("success", resp);
                     this.reSet();
                     this.myModal.hide();
-                    this.alertNot("success", "Success");
-                    this.getOrders();
+                    swal({ text: "Order has been placed successfully", icon: 'success' });
+                    this.getOrders(1);
                 }
             }, (err) => {
                 console.log(err);
             });
         }
         else {
-            this.alertNot("danger", "Please enter all the details");
+            swal({ text: "Please enter all the details", icon: 'info' });
         }
     }
     ngOnDestroy() { }
+    updateMed(id, data) {
+        var status = true;
+        var q = data;
+        if (data <= 0) {
+            status = false;
+            q = 0;
+        }
+        this.medicines = [];
+        this.medServ.updateMedicine(id, { quantity: q, status: status }).subscribe((res) => {
+            console.log("res: >>>>>>>>>>>>", res);
+        });
+    }
     reSet() {
         this.customerContact = "";
         this.customerName = "";
@@ -304,7 +343,7 @@ OrdersComponent = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ("\r\n\r\n<div class=\"notification-alert\" *ngFor=\"let alert of alertsDismiss\" style=\"position: absolute; left: 0; right: 0; margin: auto; z-index: 999999 !important; width: 20%;\">\r\n  <alert [type]=\"alert.type\" dismissOnTimeout=\"5000\" [dismissible]=\"true\"\r\n    ><strong>{{alert?.message}}</strong></alert\r\n  >\r\n</div>\r\n\r\n<div\r\n  bsModal\r\n  #largeModal=\"bs-modal\"\r\n  class=\"modal fade\"\r\n  tabindex=\"-1\"\r\n  role=\"dialog\"\r\n  aria-labelledby=\"myModalLabel\"\r\n  aria-hidden=\"true\"\r\n>\r\n  <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n    <div class=\"modal-content\">\r\n      <div class=\"modal-header card-header\">\r\n        <h4 class=\"modal-title\">New Order</h4>\r\n        <button\r\n          type=\"button\"\r\n          class=\"close\"\r\n          (click)=\"largeModal.hide()\"\r\n          aria-label=\"Close\"\r\n        >\r\n          <span aria-hidden=\"true\">&times;</span>\r\n        </button>\r\n      </div>\r\n      <div class=\"modal-body\">\r\n        <div class=\"form-group row\" style=\"margin: 20px\">\r\n          <div class=\"col-md-3\">\r\n            <label for=\"date-input\">Order Date</label>\r\n            <input\r\n              #orderDateIN\r\n              class=\"form-control\"\r\n              id=\"date-input\"\r\n              type=\"date\"\r\n              name=\"date-input\"\r\n              placeholder=\"date\"\r\n              [(ngModel)]=\"orderDate\"\r\n            />\r\n          </div>\r\n        </div>\r\n        <div class=\"form-group row\" style=\"margin: 20px\">\r\n          <div class=\"form-group col-md-5\">\r\n            <label for=\"cutomerName\">Customer Name</label>\r\n            <input\r\n              type=\"text\"\r\n              class=\"form-control\"\r\n              placeholder=\"Customer Name\"\r\n              [(ngModel)]=\"customerName\"\r\n              name=\"customerName\"\r\n              id=\"customerName\"\r\n            />\r\n          </div>\r\n          <div class=\"form-group col-md-5\">\r\n            <label for=\"customerContact\">Contact</label>\r\n            <input\r\n              type=\"number\"\r\n              class=\"form-control\"\r\n              id=\"customerContact\"\r\n              placeholder=\"Contact\"\r\n              [(ngModel)]=\"customerContact\"\r\n            />\r\n          </div>\r\n        </div>\r\n        <div class=\"table\" style=\"border-bottom: 2px solid grey\">\r\n          <table class=\"table table-striped\">\r\n            <thead>\r\n              <tr>\r\n                <th>Product</th>\r\n                <th>MRP</th>\r\n                <th>Available Quantity</th>\r\n                <th>Quantity</th>\r\n                <th>Total</th>\r\n                <th>Add</th>\r\n              </tr>\r\n            </thead>\r\n            <tbody>\r\n              <tr>\r\n                <td>\r\n                  <div class=\"form-group\">\r\n                    <ng-select\r\n                      #select1\r\n                      name=\"select1\"\r\n                      class=\"form-control custom\"\r\n                      (change)=\"onChange($event)\"\r\n                    >\r\n                      <ng-option\r\n                        *ngFor=\"let medicine of medicines\"\r\n                        [value]=\"medicine?._id\"\r\n\r\n                      >\r\n                        {{ medicine?.productName }}\r\n                      </ng-option>\r\n                    </ng-select>\r\n\r\n                    <!-- <select\r\n                      #select1\r\n                      name=\"select1\"\r\n                      class=\"form-control\"\r\n                      (change)=\"onChange($event)\"\r\n                    >\r\n                      <option value=\"0\">Select Medicine</option>\r\n                      <option\r\n                        [value]=\"medicine?._id\"\r\n                        *ngFor=\"let medicine of medicines\"\r\n                      >\r\n                        {{ medicine?.productName }}\r\n                      </option>\r\n                    </select> -->\r\n                  </div>\r\n                </td>\r\n                <td>\r\n                  <div class=\"form-group\">\r\n                    <input\r\n                      type=\"text\"\r\n                      class=\"form-control\"\r\n                      disabled\r\n                      [(ngModel)]=\"rate\"\r\n                    />\r\n                  </div>\r\n                </td>\r\n                <td>\r\n                  <div class=\"form-group\">\r\n                    <input\r\n                      type=\"text\"\r\n                      class=\"form-control\"\r\n                      disabled\r\n                      [(ngModel)]=\"quantity\"\r\n                    />\r\n                  </div>\r\n                </td>\r\n                <td>\r\n                  <div class=\"form-group\">\r\n                    <input\r\n                      type=\"number\"\r\n                      class=\"form-control\"\r\n                      [(ngModel)]=\"orderQuantity\"\r\n                    />\r\n                  </div>\r\n                </td>\r\n                <td>\r\n                  <div class=\"form-group\">\r\n                    <input\r\n                      type=\"text\"\r\n                      class=\"form-control\"\r\n                      disabled\r\n                      [(ngModel)]=\"total\"\r\n                    />\r\n                  </div>\r\n                </td>\r\n                <td>\r\n                  <Button class=\"btn btn-success\" (click)=\"onAdd()\"\r\n                    ><span class=\"cil-plus\"></span\r\n                  ></Button>\r\n                </td>\r\n              </tr>\r\n              <tr *ngFor=\"let orderitem of orderList\">\r\n                <td>{{ orderitem?.medicine }}</td>\r\n                <td>{{ orderitem?.rate }}</td>\r\n                <td></td>\r\n                <td>{{ orderitem?.orderQuantity }}</td>\r\n                <td>{{ orderitem?.total }}</td>\r\n                <td>\r\n                  <button\r\n                    class=\"btn btn-danger\"\r\n                    (click)=\"removeItem(orderitem?.medicine_id)\"\r\n                  >\r\n                    <span class=\"cil-trash\"></span>\r\n                  </button>\r\n                </td>\r\n              </tr>\r\n            </tbody>\r\n          </table>\r\n        </div>\r\n        <div class=\"form-group row\" style=\"margin: 20px\">\r\n          <div class=\"col-md-5\">\r\n            <div class=\"form-group\">\r\n              <label for=\"subtotal\">Sub Total</label>\r\n              <input\r\n                type=\"text\"\r\n                class=\"form-control\"\r\n                id=\"subtotal\"\r\n                disabled\r\n                [(ngModel)]=\"subTotal\"\r\n              />\r\n            </div>\r\n            <div class=\"form-group\">\r\n              <label for=\"gst\">GST</label>\r\n              <input\r\n                type=\"number\"\r\n                class=\"form-control\"\r\n                id=\"gst\"\r\n                placeholder=\"GST %\"\r\n                [(ngModel)]=\"gstRate\"\r\n              />\r\n            </div>\r\n            <div class=\"form-group\">\r\n              <label for=\"total\">Total</label>\r\n              <input\r\n                type=\"text\"\r\n                class=\"form-control\"\r\n                id=\"total\"\r\n                disabled\r\n                [(ngModel)]=\"gstTotal\"\r\n              />\r\n            </div>\r\n            <div class=\"form-group\">\r\n              <label for=\"discount\">Discount (in %)</label>\r\n              <input\r\n                type=\"number\"\r\n                class=\"form-control\"\r\n                id=\"discount\"\r\n                placeholder=\"Discount %\"\r\n                [(ngModel)]=\"discount\"\r\n              />\r\n            </div>\r\n            <div class=\"form-group\">\r\n              <label for=\"grandtotal\">Grand Total</label>\r\n              <input\r\n                type=\"text\"\r\n                class=\"form-control\"\r\n                id=\"grangtotal\"\r\n                disabled\r\n                [(ngModel)]=\"grandTotal\"\r\n              />\r\n            </div>\r\n          </div>\r\n          <div class=\"col-md-5\">\r\n            <div class=\"form-group\">\r\n              <label for=\"paidamount\">Paid Amount</label>\r\n              <input\r\n                type=\"number\"\r\n                class=\"form-control\"\r\n                id=\"paidamount\"\r\n                placeholder=\"Amount\"\r\n                [(ngModel)]=\"paidAmount\"\r\n              />\r\n            </div>\r\n            <div class=\"form-group\">\r\n              <label for=\"dueamount\">Due Amount</label>\r\n              <input\r\n                type=\"text\"\r\n                class=\"form-control\"\r\n                id=\"dueamount\"\r\n                disabled\r\n                [(ngModel)]=\"dueAmount\"\r\n              />\r\n            </div>\r\n            <div class=\"form-group\">\r\n              <label for=\"paymentType\">Payment Type</label>\r\n              <select\r\n                id=\"select1\"\r\n                name=\"select1\"\r\n                class=\"form-control\"\r\n                [(ngModel)]=\"paymentMethod\"\r\n              >\r\n                <option value=\"0\">Please select</option>\r\n                <option value=\"Cash\">Cash</option>\r\n                <option value=\"Card\">Card</option>\r\n                <option value=\"UPI\">UPI</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n      <div class=\"card-footer\">\r\n        <button\r\n          type=\"submit\"\r\n          class=\"btn btn-primary col-md-3\"\r\n          (click)=\"submit()\"\r\n        >\r\n          <i class=\"fa fa-dot-circle-o\"></i> Submit\r\n        </button>\r\n        <button type=\"reset\" (click)=\"reSet()\" class=\"btn btn-danger col-md-3\">\r\n          <i class=\"fa fa-ban\"></i> Reset\r\n        </button>\r\n        <button\r\n          type=\"button\"\r\n          class=\"btn btn-secondary col-md-3\"\r\n          (click)=\"largeModal.hide()\"\r\n        >\r\n          Close\r\n        </button>\r\n      </div>\r\n    </div>\r\n    <!-- /.modal-content -->\r\n  </div>\r\n  <!-- /.modal-dialog -->\r\n</div>\r\n<!-- /.modal -->\r\n\r\n<div class=\"card\" style=\"margin-top: 30px\">\r\n  <div class=\"card-header\">\r\n    <h6>Order datails</h6>\r\n  </div>\r\n  <div class=\"card-body\">\r\n    <div class=\"header row\" style=\"margin-bottom: 20px\">\r\n      <div class=\"input-group col-md-3\">\r\n        <input\r\n          type=\"text\"\r\n          id=\"input1-group2\"\r\n          name=\"input1-group2\"\r\n          class=\"form-control\"\r\n          placeholder=\"Search Orders\"\r\n          [(ngModel)]=\"term\"\r\n        />\r\n        <span class=\"input-group-append\">\r\n          <button type=\"button\" class=\"btn btn-primary btn-pill\">\r\n            <i class=\"fa fa-search\"></i> Search\r\n          </button>\r\n        </span>\r\n      </div>\r\n      <button\r\n        type=\"button\"\r\n        class=\"btn btn-pill btn-secondary mr-1 col-md-3\"\r\n        data-toggle=\"modal\"\r\n        (click)=\"largeModal.show()\"\r\n      >\r\n        New Order\r\n      </button>\r\n    </div>\r\n    <table class=\"table table-striped\">\r\n      <thead>\r\n        <tr>\r\n          <th>S.No.</th>\r\n          <th>Invoice Id</th>\r\n          <th>Order Date</th>\r\n          <th>Customer Name</th>\r\n          <th>Contact</th>\r\n          <th>Payment status</th>\r\n          <th>update</th>\r\n        </tr>\r\n      </thead>\r\n      <tbody>\r\n        <tr\r\n          *ngFor=\"\r\n            let order of orders\r\n              | filter: term\r\n              | paginate\r\n                : {\r\n                    itemsPerPage: 10,\r\n                    currentPage: p,\r\n                    totalItems: orders.length\r\n                  };\r\n            let i = index\r\n          \"\r\n        >\r\n          <td>{{ i + 1 }}</td>\r\n          <td>{{ order?.invoiceId }}</td>\r\n          <td>{{ order?.createdAt | amDateFormat: \"DD/MM/YYYY\" }}</td>\r\n          <td>{{ order?.customerName }}</td>\r\n          <td>{{ order?.customerContact }}</td>\r\n          <td>{{ order?.paymentType }}</td>\r\n          <td>\r\n            <div class=\"update row\">\r\n              <button\r\n                class=\"btn btn-sm btn-secondary btn-pill\"\r\n                (click)=\"toGetPrint(order?._id)\"\r\n              >\r\n                Print\r\n              </button>\r\n              <button\r\n                class=\"btn btn-sm btn-danger btn-pill\"\r\n                (click)=\"deleteOrder(order?._id)\"\r\n              >\r\n                <span class=\"cil-trash\"></span>\r\n              </button>\r\n            </div>\r\n          </td>\r\n        </tr>\r\n      </tbody>\r\n    </table>\r\n  </div>\r\n  <div class=\"card-footer\">\r\n    <pagination-controls\r\n      (pageChange)=\"handlePageChange($event)\"\r\n    ></pagination-controls>\r\n  </div>\r\n</div>\r\n");
+/* harmony default export */ __webpack_exports__["default"] = ("\n\n<div class=\"notification-alert\" *ngFor=\"let alert of alertsDismiss\" style=\"position: absolute; left: 0; right: 0; margin: auto; z-index: 999999 !important; width: 20%;\">\n  <alert [type]=\"alert.type\" dismissOnTimeout=\"5000\" [dismissible]=\"true\"\n    ><strong>{{alert?.message}}</strong></alert\n  >\n</div>\n\n<div\n  bsModal\n  #largeModal=\"bs-modal\"\n  class=\"modal fade\"\n  tabindex=\"-1\"\n  role=\"dialog\"\n  aria-labelledby=\"myModalLabel\"\n  aria-hidden=\"true\"\n  [config]=\"config\"\n>\n  <div class=\"modal-dialog modal-lg\" role=\"document\">\n    <div class=\"modal-content\">\n      <div class=\"modal-header card-header\">\n        <h4 class=\"modal-title\">New Order</h4>\n        <button\n          type=\"button\"\n          class=\"close\"\n          (click)=\"largeModal.hide()\"\n          aria-label=\"Close\"\n        >\n          <span aria-hidden=\"true\">&times;</span>\n        </button>\n      </div>\n      <div class=\"modal-body\">\n        <div class=\"form-group row\" style=\"margin: 20px\">\n          <div class=\"col-md-3\">\n            <label for=\"date-input\">Order Date</label>\n            <input\n              #orderDateIN\n              class=\"form-control\"\n              id=\"date-input\"\n              type=\"date\"\n              name=\"date-input\"\n              placeholder=\"date\"\n              [(ngModel)]=\"orderDate\"\n            />\n          </div>\n        </div>\n        <div class=\"form-group row\" style=\"margin: 20px\">\n          <div class=\"form-group col-md-5\">\n            <label for=\"cutomerName\">Customer Name</label>\n            <input\n              type=\"text\"\n              class=\"form-control\"\n              placeholder=\"Customer Name\"\n              [(ngModel)]=\"customerName\"\n              name=\"customerName\"\n              id=\"customerName\"\n            />\n          </div>\n          <div class=\"form-group col-md-5\">\n            <label for=\"customerContact\">Contact</label>\n            <input\n              type=\"number\"\n              class=\"form-control\"\n              id=\"customerContact\"\n              placeholder=\"Contact\"\n              [(ngModel)]=\"customerContact\"\n            />\n          </div>\n        </div>\n        <div class=\"table\" style=\"border-bottom: 2px solid grey\">\n          <table class=\"table table-striped\">\n            <thead>\n              <tr>\n                <th>Product</th>\n                <th>MRP</th>\n                <th>Available Quantity</th>\n                <th>Quantity</th>\n                <th>Total</th>\n                <th>Add</th>\n              </tr>\n            </thead>\n            <tbody>\n              <tr>\n                <td>\n                  <div class=\"form-group\">\n                    <ng-select\n                      #select1\n                      style=\"width: 150px;\"\n                      name=\"select1\"\n                      class=\"form-control custom\"\n                      (keypress)=\"getMedicines($event)\"          \n                      (change)=\"onChange($event)\"\n                    >\n                      <ng-option\n                        *ngFor=\"let medicine of medicines\"\n                        [value]=\"medicine?._id\"\n\n                      >\n                      <span style=\"font-size: 14px; font-weight: bold;\">{{ medicine?.productName }}\n                      </span>\n                        <span \n                        class=\"badge badge-primary badge-pill\"\n                        style=\"color: white;\"\n                        >{{ medicine?.brand }}</span>\n                        <span\n                        class=\"badge badge-pill\"\n                        [class.badge-success]=\"medicine?.status\"\n                        [class.badge-danger]=\"!medicine?.status\"\n                        >{{ medicine?.status ? \"Avail\" : \"NotAvail\" }}</span\n                      >\n                      </ng-option>\n                    </ng-select>\n\n                    <!-- <select\n                      #select1\n                      name=\"select1\"\n                      class=\"form-control\"\n                      (change)=\"onChange($event)\"\n                    >\n                      <option value=\"0\">Select Medicine</option>\n                      <option\n                        [value]=\"medicine?._id\"\n                        *ngFor=\"let medicine of medicines\"\n                      >\n                        {{ medicine?.productName }}\n                      </option>\n                    </select> -->\n                  </div>\n                </td>\n                <td>\n                  <div class=\"form-group\">\n                    <input\n                      type=\"text\"\n                      class=\"form-control\"\n                      disabled\n                      [(ngModel)]=\"rate\"\n                    />\n                  </div>\n                </td>\n                <td>\n                  <div class=\"form-group\">\n                    <input\n                      type=\"text\"\n                      class=\"form-control\"\n                      disabled\n                      [(ngModel)]=\"quantity\"\n                    />\n                  </div>\n                </td>\n                <td>\n                  <div class=\"form-group\">\n                    <input\n                      type=\"number\"\n                      class=\"form-control\"\n                      [(ngModel)]=\"orderQuantity\"\n                    />\n                  </div>\n                </td>\n                <td>\n                  <div class=\"form-group\">\n                    <input\n                      type=\"text\"\n                      class=\"form-control\"\n                      disabled\n                      [(ngModel)]=\"total\"\n                    />\n                  </div>\n                </td>\n                <td>\n                  <Button class=\"btn btn-success\" (click)=\"onAdd()\"\n                    ><span class=\"cil-plus\"></span\n                  ></Button>\n                </td>\n              </tr>\n              <tr *ngFor=\"let orderitem of orderList\">\n                <td>{{ orderitem?.medicine }}</td>\n                <td>{{ orderitem?.rate }}</td>\n                <td></td>\n                <td>{{ orderitem?.orderQuantity }}</td>\n                <td>{{ orderitem?.total }}</td>\n                <td>\n                  <button\n                    class=\"btn btn-danger\"\n                    (click)=\"removeItem(orderitem?.medicine_id)\"\n                  >\n                    <span class=\"cil-trash\"></span>\n                  </button>\n                </td>\n              </tr>\n            </tbody>\n          </table>\n        </div>\n        <div class=\"form-group row\" style=\"margin: 20px\">\n          <div class=\"col-md-5\">\n            <div class=\"form-group\">\n              <label for=\"subtotal\">Sub Total</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"subtotal\"\n                disabled\n                [(ngModel)]=\"subTotal\"\n              />\n            </div>\n            <div class=\"form-group\">\n              <label for=\"gst\">GST</label>\n              <input\n                type=\"number\"\n                class=\"form-control\"\n                id=\"gst\"\n                placeholder=\"GST %\"\n                [(ngModel)]=\"gstRate\"\n              />\n            </div>\n            <div class=\"form-group\">\n              <label for=\"total\">Total</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"total\"\n                disabled\n                [(ngModel)]=\"gstTotal\"\n              />\n            </div>\n            <div class=\"form-group\">\n              <label for=\"discount\">Discount (in %)</label>\n              <input\n                type=\"number\"\n                class=\"form-control\"\n                id=\"discount\"\n                placeholder=\"Discount %\"\n                [(ngModel)]=\"discount\"\n              />\n            </div>\n            <div class=\"form-group\">\n              <label for=\"grandtotal\">Grand Total</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"grangtotal\"\n                disabled\n                [(ngModel)]=\"grandTotal\"\n              />\n            </div>\n          </div>\n          <div class=\"col-md-5\">\n            <div class=\"form-group\">\n              <label for=\"paidamount\">Paid Amount</label>\n              <input\n                type=\"number\"\n                class=\"form-control\"\n                id=\"paidamount\"\n                placeholder=\"Amount\"\n                [(ngModel)]=\"paidAmount\"\n              />\n            </div>\n            <div class=\"form-group\">\n              <label for=\"dueamount\">Due Amount</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"dueamount\"\n                disabled\n                [(ngModel)]=\"dueAmount\"\n              />\n            </div>\n            <div class=\"form-group\">\n              <label for=\"paymentType\">Payment Type</label>\n              <select\n                id=\"select1\"\n                name=\"select1\"\n                class=\"form-control\"\n                [(ngModel)]=\"paymentMethod\"\n              >\n                <option value=\"0\">Please select</option>\n                <option value=\"Cash\">Cash</option>\n                <option value=\"Card\">Card</option>\n                <option value=\"UPI\">UPI</option>\n              </select>\n            </div>\n          </div>\n        </div>\n      </div>\n      <div class=\"card-footer\">\n        <button\n          type=\"submit\"\n          class=\"btn btn-primary col-md-3\"\n          (click)=\"submit()\"\n        >\n          <i class=\"fa fa-dot-circle-o\"></i> Submit\n        </button>\n        <button type=\"reset\" (click)=\"reSet()\" class=\"btn btn-danger col-md-3\">\n          <i class=\"fa fa-ban\"></i> Reset\n        </button>\n        <button\n          type=\"button\"\n          class=\"btn btn-secondary col-md-3\"\n          (click)=\"largeModal.hide()\"\n        >\n          Close\n        </button>\n      </div>\n    </div>\n    <!-- /.modal-content -->\n  </div>\n  <!-- /.modal-dialog -->\n</div>\n<!-- /.modal -->\n\n<div class=\"card\" style=\"margin-top: 30px\">\n  <div class=\"card-header\">\n    <h6>Order datails</h6>\n  </div>\n  <div class=\"card-body\">\n    <div class=\"header row\" style=\"margin-bottom: 20px\">\n      <div class=\"input-group col-md-3\">\n        <input\n          type=\"text\"\n          id=\"input1-group2\"\n          name=\"input1-group2\"\n          class=\"form-control\"\n          placeholder=\"Search Orders\"\n          [(ngModel)]=\"searchTerm\"\n          (ngModelChange)=\"searchOrd($event)\"\n        />\n        <span class=\"input-group-append\">\n          <button type=\"button\" class=\"btn btn-primary btn-pill\">\n            <i class=\"fa fa-search\"></i> Search\n          </button>\n        </span>\n      </div>\n      <button\n        type=\"button\"\n        class=\"btn btn-pill btn-secondary mr-1 col-md-3\"\n        data-toggle=\"modal\"\n        (click)=\"largeModal.show()\"\n      >\n        New Order\n      </button>\n    </div>\n    <table class=\"table table-striped\">\n      <thead>\n        <tr>\n          <th>S.No.</th>\n          <th>Invoice Id</th>\n          <th>Order Date</th>\n          <th>Customer Name</th>\n          <th>Contact</th>\n          <th>Payment status</th>\n          <th>update</th>\n        </tr>\n      </thead>\n      <tbody>\n        <tr\n          *ngFor=\"\n            let order of orders\n              | paginate\n                : {\n                    itemsPerPage: 10,\n                    currentPage: p,\n                    totalItems: totalOrders\n                  };\n            let i = index\n          \"\n        >\n          <td>{{ i + 1 }}</td>\n          <td>{{ order?.invoiceId }}</td>\n          <td>{{ order?.createdAt | amDateFormat: \"DD/MM/YYYY\" }}</td>\n          <td>{{ order?.customerName }}</td>\n          <td>{{ order?.customerContact }}</td>\n          <td>{{ order?.paymentType }}</td>\n          <td>\n            <div class=\"update row\">\n              <button\n                class=\"btn btn-sm btn-secondary btn-pill\"\n                (click)=\"toGetPrint(order?._id)\"\n              >\n                Print\n              </button>\n              <button\n                class=\"btn btn-sm btn-danger btn-pill\"\n                (click)=\"deleteOrder(order?._id)\"\n              >\n                <span class=\"cil-trash\"></span>\n              </button>\n            </div>\n          </td>\n        </tr>\n      </tbody>\n    </table>\n  </div>\n  <div class=\"card-footer\">\n    <pagination-controls\n      (pageChange)=\"handlePageChange($event)\"\n    ></pagination-controls>\n  </div>\n</div>\n");
 
 /***/ }),
 
@@ -317,7 +356,7 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = (".ng-select.custom ::ng-deep .ng-dropdown-panel {\n  box-sizing: border-box;\n  cursor: pointer;\n  display: block;\n  margin-top: 8px;\n  margin-left: -12px;\n  background: white;\n  border: 1px solid #e4e7ea;\n  min-width: 150px;\n  border-radius: 4px;\n  border-top: none;\n}\n\n.ng-select.custom ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option:hover {\n  box-sizing: border-box;\n  cursor: pointer;\n  display: block;\n  background: #f0f3f5;\n}\n\n.ng-select.custom ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {\n  cursor: pointer;\n  padding-left: 15px;\n  padding: 6px;\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uXFwuLlxcLi5cXC4uXFxvcmRlcnMuY29tcG9uZW50LnNjc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQ0E7RUFDSSxzQkFBQTtFQUNBLGVBQUE7RUFDQSxjQUFBO0VBQ0EsZUFBQTtFQUNBLGtCQUFBO0VBQ0EsaUJBQUE7RUFDQSx5QkFBQTtFQUNBLGdCQUFBO0VBQ0Esa0JBQUE7RUFDQSxnQkFBQTtBQUFKOztBQUlBO0VBQ0ksc0JBQUE7RUFDQSxlQUFBO0VBQ0EsY0FBQTtFQUNBLG1CQUFBO0FBREo7O0FBR0E7RUFDSSxlQUFBO0VBQ0Esa0JBQUE7RUFDQSxZQUFBO0FBQUoiLCJmaWxlIjoib3JkZXJzLmNvbXBvbmVudC5zY3NzIiwic291cmNlc0NvbnRlbnQiOlsiXG4ubmctc2VsZWN0LmN1c3RvbSA6Om5nLWRlZXAgLm5nLWRyb3Bkb3duLXBhbmVsICB7XG4gICAgYm94LXNpemluZzogYm9yZGVyLWJveDtcbiAgICBjdXJzb3I6IHBvaW50ZXI7XG4gICAgZGlzcGxheTogYmxvY2s7XG4gICAgbWFyZ2luLXRvcDogOHB4O1xuICAgIG1hcmdpbi1sZWZ0OiAtMTJweDtcbiAgICBiYWNrZ3JvdW5kOiB3aGl0ZTtcbiAgICBib3JkZXI6IDFweCBzb2xpZCAjZTRlN2VhO1xuICAgIG1pbi13aWR0aDogMTUwcHg7XG4gICAgYm9yZGVyLXJhZGl1czogNHB4O1xuICAgIGJvcmRlci10b3A6IG5vbmU7XG5cbn1cblxuLm5nLXNlbGVjdC5jdXN0b20gOjpuZy1kZWVwIC5uZy1kcm9wZG93bi1wYW5lbCAubmctZHJvcGRvd24tcGFuZWwtaXRlbXMgLm5nLW9wdGlvbjpob3ZlciB7XG4gICAgYm94LXNpemluZzogYm9yZGVyLWJveDtcbiAgICBjdXJzb3I6IHBvaW50ZXI7XG4gICAgZGlzcGxheTogYmxvY2s7XG4gICAgYmFja2dyb3VuZDogI2YwZjNmNTtcbn1cbi5uZy1zZWxlY3QuY3VzdG9tIDo6bmctZGVlcCAubmctZHJvcGRvd24tcGFuZWwgLm5nLWRyb3Bkb3duLXBhbmVsLWl0ZW1zIC5uZy1vcHRpb24ge1xuICAgIGN1cnNvcjogcG9pbnRlcjtcbiAgICBwYWRkaW5nLWxlZnQ6IDE1cHg7XG4gICAgcGFkZGluZzogNnB4O1xufSJdfQ== */");
+/* harmony default export */ __webpack_exports__["default"] = (".ng-select.custom ::ng-deep .ng-dropdown-panel {\n  box-sizing: border-box;\n  cursor: pointer;\n  display: block;\n  margin-top: 8px;\n  margin-left: -12px;\n  background: white;\n  border: 1px solid #e4e7ea;\n  min-width: -webkit-fit-content;\n  min-width: -moz-fit-content;\n  min-width: fit-content;\n  border-radius: 4px;\n  border-top: none;\n}\n\n.ng-select.custom ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option:hover {\n  box-sizing: border-box;\n  cursor: pointer;\n  display: block;\n  background: #f0f3f5;\n}\n\n.ng-select.custom ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {\n  cursor: pointer;\n  padding-left: 15px;\n  padding: 6px;\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uLy4uLy4uL29yZGVycy5jb21wb25lbnQuc2NzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFDQTtFQUNJLHNCQUFBO0VBQ0EsZUFBQTtFQUNBLGNBQUE7RUFDQSxlQUFBO0VBQ0Esa0JBQUE7RUFDQSxpQkFBQTtFQUNBLHlCQUFBO0VBQ0EsOEJBQUE7RUFBQSwyQkFBQTtFQUFBLHNCQUFBO0VBQ0Esa0JBQUE7RUFDQSxnQkFBQTtBQUFKOztBQUlBO0VBQ0ksc0JBQUE7RUFDQSxlQUFBO0VBQ0EsY0FBQTtFQUNBLG1CQUFBO0FBREo7O0FBR0E7RUFDSSxlQUFBO0VBQ0Esa0JBQUE7RUFDQSxZQUFBO0FBQUoiLCJmaWxlIjoib3JkZXJzLmNvbXBvbmVudC5zY3NzIiwic291cmNlc0NvbnRlbnQiOlsiXG4ubmctc2VsZWN0LmN1c3RvbSA6Om5nLWRlZXAgLm5nLWRyb3Bkb3duLXBhbmVsICB7XG4gICAgYm94LXNpemluZzogYm9yZGVyLWJveDtcbiAgICBjdXJzb3I6IHBvaW50ZXI7XG4gICAgZGlzcGxheTogYmxvY2s7XG4gICAgbWFyZ2luLXRvcDogOHB4O1xuICAgIG1hcmdpbi1sZWZ0OiAtMTJweDtcbiAgICBiYWNrZ3JvdW5kOiB3aGl0ZTtcbiAgICBib3JkZXI6IDFweCBzb2xpZCAjZTRlN2VhO1xuICAgIG1pbi13aWR0aDogZml0LWNvbnRlbnQ7XG4gICAgYm9yZGVyLXJhZGl1czogNHB4O1xuICAgIGJvcmRlci10b3A6IG5vbmU7XG5cbn1cblxuLm5nLXNlbGVjdC5jdXN0b20gOjpuZy1kZWVwIC5uZy1kcm9wZG93bi1wYW5lbCAubmctZHJvcGRvd24tcGFuZWwtaXRlbXMgLm5nLW9wdGlvbjpob3ZlciB7XG4gICAgYm94LXNpemluZzogYm9yZGVyLWJveDtcbiAgICBjdXJzb3I6IHBvaW50ZXI7XG4gICAgZGlzcGxheTogYmxvY2s7XG4gICAgYmFja2dyb3VuZDogI2YwZjNmNTtcbn1cbi5uZy1zZWxlY3QuY3VzdG9tIDo6bmctZGVlcCAubmctZHJvcGRvd24tcGFuZWwgLm5nLWRyb3Bkb3duLXBhbmVsLWl0ZW1zIC5uZy1vcHRpb24ge1xuICAgIGN1cnNvcjogcG9pbnRlcjtcbiAgICBwYWRkaW5nLWxlZnQ6IDE1cHg7XG4gICAgcGFkZGluZzogNnB4O1xufSJdfQ== */");
 
 /***/ }),
 
@@ -343,7 +382,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var angular2_moment__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(angular2_moment__WEBPACK_IMPORTED_MODULE_8__);
 /* harmony import */ var ng2_search_filter__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ng2-search-filter */ "KeVr");
 /* harmony import */ var _ng_select_ng_select__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @ng-select/ng-select */ "wTG2");
-/* harmony import */ var ngx_pagination__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ngx-pagination */ "xkgV");
+/* harmony import */ var ngx_pagination__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ngx-pagination */ "oOf3");
 /* harmony import */ var ngx_bootstrap_alert__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ngx-bootstrap/alert */ "CNMR");
 
 

@@ -7,8 +7,8 @@ import { Router } from "@angular/router";
   templateUrl: "login.component.html",
 })
 export class LoginComponent implements OnInit {
-  isPassword = "123";
-  isUsername = "test";
+  isPassword = "Nutan@Pharma";
+  isUsername = "Admin";
 
   loginForm = new FormGroup({
     username: new FormControl(""),

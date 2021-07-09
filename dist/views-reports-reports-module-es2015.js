@@ -22,7 +22,7 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ("<div\r\n  class=\"heading\"\r\n  style=\"margin-top: 100px; \"\r\n>\r\n  <div class=\"tital\" style=\"min-height: 200px; margin-top: 50px\">\r\n    <div class=\"watermark\" style=\"display: flex; justify-content: center\">\r\n      <img src=\"assets/nutanPharmlg.svg\" alt=\"\" />\r\n    </div>\r\n  </div>\r\n</div>\r\n");
+/* harmony default export */ __webpack_exports__["default"] = ("<div\n  class=\"heading\"\n  style=\"margin-top: 100px; \"\n>\n  <div class=\"tital\" style=\"min-height: 200px; margin-top: 50px\">\n    <div class=\"watermark\" style=\"display: flex; justify-content: center\">\n      <img src=\"assets/nutanPharmlg.svg\" alt=\"\" />\n    </div>\n  </div>\n</div>\n");
 
 /***/ }),
 

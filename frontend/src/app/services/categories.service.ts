@@ -10,8 +10,8 @@ export class CategoriesService {
 
   constructor(private http: HttpClient) { }
 
-  getCategories() {
-    return this.http.get(`${this.apiUrl}api/c/categories`);
+  getCategories(data?) {
+    return this.http.get(`${this.apiUrl}api/c/categories?${data}`);
   }
 
   deleteCategory(id) {
@@ -19,5 +19,8 @@ export class CategoriesService {
   }
   postCategory(payload){
     return this.http.post(`${this.apiUrl}api/c/categories/create`, payload);
+  }
+  updateCategory(id, payload){
+    return this.http.put(`${this.apiUrl}api/c/categories/${id}`, payload)
   }
 }

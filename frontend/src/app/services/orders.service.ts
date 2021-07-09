@@ -13,8 +13,8 @@ export class OrdersService {
     return this.http.post(`${this.apiUrl}api/c/orders/create`, payload);
   }
 
-  getOrders() {
-    return this.http.get(`${this.apiUrl}api/c/orders`);
+  getOrders(data?) {
+    return this.http.get(`${this.apiUrl}api/c/orders?${data}`);
   }
   deleteOrder(id){
     return this.http.delete(`${this.apiUrl}api/c/orders/${id}`)

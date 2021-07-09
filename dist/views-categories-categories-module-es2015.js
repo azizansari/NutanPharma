@@ -33,19 +33,32 @@ let CategoriesComponent = class CategoriesComponent {
         this.p = 1;
         this.submitted = false;
         this.isSuccess = false;
+        this.editCategory = {};
+        this.config = {
+            backdrop: 'static'
+        };
         this.status = false;
     }
     ngOnInit() {
-        this.getCategories();
+        this.getCategories(1);
         this.buildForm();
     }
     handlePageChange(event) {
         this.p = event;
+        this.getCategories(this.p);
     }
-    getCategories() {
-        this.catgServ.getCategories().subscribe((res) => {
+    getCategories(page) {
+        this.catgServ.getCategories(`skip=${page * 10 - 10}&limit=10`).subscribe((res) => {
             console.log('catg...', res);
             this.categories = res.data;
+            this.totalCatg = res['total'];
+        });
+    }
+    searchCatg(e) {
+        this.catgServ.getCategories(`search=${this.searchTerm}&limit=10`).subscribe((res) => {
+            this.categories = res['data'];
+            this.totalCatg = res['total'];
+            this.p = 1;
         });
     }
     onChang(e) {
@@ -80,25 +93,53 @@ let CategoriesComponent = class CategoriesComponent {
             this.catgServ.postCategory(this.f).subscribe((resp) => {
                 if (resp) {
                     this.addCategoryForm.reset();
-                    this.getCategories();
+                    this.getCategories(1);
                     this.myModal.hide();
-                    this.alertNot("success", "Success");
+                    swal({ text: "Brand Added successfully", icon: 'success' });
                 }
                 console.log("category>>>", resp);
             });
         }
         else {
-            this.alertNot("danger", "Please enter all the details");
+            swal({ text: "Please enter all the details", icon: 'info' });
         }
         console.log(this.f);
     }
     deletCategory(id) {
-        this.catgServ.deleteCategory(id).subscribe((resp) => {
-            this.getCategories();
+        swal({ text: "Do you want to delete this Category", icon: 'warning', buttons: true, dangerMode: true, })
+            .then((del) => {
+            if (del) {
+                this.catgServ.deleteCategory(id).subscribe((resp) => {
+                    this.getCategories(this.p);
+                    swal({ text: "Category deleted successfully", icon: 'success' });
+                });
+            }
         });
     }
     reSet() {
         this.addCategoryForm.reset();
+    }
+    openUpdate(category) {
+        this.updateModal.show();
+        this.editCategory = category;
+    }
+    submitUpdate() {
+        console.log(">>>>", this.editCategory);
+        this.catgServ.updateCategory(this.editCategory['_id'], this.editCategory).subscribe((res) => {
+            console.log("res: >>>>>>>>>>>>", res);
+            if (res) {
+                this.getCategories(this.p);
+                this.updateModal.hide();
+                swal({
+                    title: `${this.editCategory['category']}`,
+                    text: `Updated successfully`,
+                    icon: 'success'
+                });
+            }
+            else {
+                swal({ text: "Please enter all the details", icon: 'info' });
+            }
+        });
     }
     alertNot(type, message) {
         this.alertsDismiss.push({
@@ -113,7 +154,8 @@ CategoriesComponent.ctorParameters = () => [
     { type: _angular_forms__WEBPACK_IMPORTED_MODULE_4__["FormBuilder"] }
 ];
 CategoriesComponent.propDecorators = {
-    myModal: [{ type: _angular_core__WEBPACK_IMPORTED_MODULE_3__["ViewChild"], args: ["myModal",] }]
+    myModal: [{ type: _angular_core__WEBPACK_IMPORTED_MODULE_3__["ViewChild"], args: ["myModal",] }],
+    updateModal: [{ type: _angular_core__WEBPACK_IMPORTED_MODULE_3__["ViewChild"], args: ["updateModal",] }]
 };
 CategoriesComponent = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_angular_core__WEBPACK_IMPORTED_MODULE_3__["Component"])({
@@ -138,7 +180,7 @@ CategoriesComponent = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ("\r\n\r\n<div class=\"notification-alert\" *ngFor=\"let alert of alertsDismiss\" style=\"position: absolute; left: 0; right: 0; margin: auto; z-index: 999999 !important; width: 20%;\">\r\n  <alert [type]=\"alert.type\" dismissOnTimeout=\"5000\" [dismissible]=\"true\"\r\n    ><strong>{{alert?.message}}</strong></alert\r\n  >\r\n</div>\r\n<div\r\n  bsModal\r\n  #myModal=\"bs-modal\"\r\n  class=\"modal fade\"\r\n  tabindex=\"-1\"\r\n  role=\"dialog\"\r\n  aria-labelledby=\"myModalLabel\"\r\n  aria-hidden=\"true\"\r\n>\r\n  <div class=\"modal-dialog\" role=\"document\">\r\n    <div class=\"modal-content\">\r\n      <div class=\"modal-header card-header\">\r\n        <h4 class=\"modal-title\">Add New category</h4>\r\n        <button\r\n          type=\"button\"\r\n          class=\"close\"\r\n          (click)=\"myModal.hide()\"\r\n          aria-label=\"Close\"\r\n        >\r\n          <span aria-hidden=\"true\">&times;</span>\r\n        </button>\r\n      </div>\r\n      <div\r\n        class=\"modal-body\"\r\n        id=\"medicineAddForm\"\r\n        [formGroup]=\"addCategoryForm\"\r\n      >\r\n        <div class=\"form-group row\" style=\"margin: 20px\">\r\n          <div class=\"col-md-5\">\r\n            <div class=\"form-group\">\r\n              <label for=\"desc\">Description</label>\r\n              <input\r\n                class=\"form-control\"\r\n                id=\"desc\"\r\n                type=\"text\"\r\n                name=\"desc\"\r\n                placeholder=\"desc\"\r\n                formControlName=\"desc\"\r\n                required\r\n              />\r\n            </div>\r\n            <div class=\"form-group\">\r\n              <label for=\"company\">Status</label>\r\n              <select\r\n                id=\"select1\"\r\n                name=\"select1\"\r\n                class=\"form-control\"\r\n                placeholder=\"Select Status\"\r\n                (change)=\"onChang($event)\"\r\n              >\r\n                <option value=\"0\">Select Status</option>\r\n                <option [value]=\"true\">Available</option>\r\n                <option [value]=\"false\">Not Available</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n          <div class=\"col-md-5\">\r\n            <div class=\"form-group\">\r\n              <label for=\"company\">Category</label>\r\n              <input\r\n                type=\"text\"\r\n                class=\"form-control\"\r\n                id=\"company\"\r\n                placeholder=\"category\"\r\n                formControlName=\"category\"\r\n              />\r\n            </div>\r\n\r\n            <div class=\"form-group\">\r\n              <label for=\"company\">Other</label>\r\n              <input\r\n                type=\"text\"\r\n                class=\"form-control\"\r\n                id=\"other\"\r\n                formControlName=\"other\"\r\n              />\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n      <div class=\"card-footer\">\r\n        <button\r\n          type=\"submit\"\r\n          class=\"btn btn-primary col-md-3\"\r\n          (click)=\"submit()\"\r\n          type=\"submit\"\r\n          form:submit\r\n        >\r\n          <i class=\"fa fa-dot-circle-o\"></i> Add\r\n        </button>\r\n        <button type=\"reset\" class=\"btn btn-danger col-md-3\" (click)=\"reSet()\">\r\n          <i class=\"fa fa-ban\"></i> Reset\r\n        </button>\r\n        <button\r\n          type=\"button\"\r\n          class=\"btn btn-secondary col-md-3\"\r\n          (click)=\"myModal.hide()\"\r\n        >\r\n          Close\r\n        </button>\r\n      </div>\r\n    </div>\r\n    <!-- /.modal-content -->\r\n  </div>\r\n  <!-- /.modal-dialog -->\r\n</div>\r\n<!-- /.modal -->\r\n\r\n<div class=\"card\" style=\"margin-top: 30px;\">\r\n  <div class=\"card-header\">\r\n    <h6>Available Categories</h6>\r\n  </div>\r\n  <div class=\"card-body\">\r\n    <div class=\"header row\" style=\"margin-bottom: 20px\">\r\n      <div class=\"input-group col-md-3\">\r\n        <input\r\n          type=\"text\"\r\n          id=\"input1-group2\"\r\n          name=\"input1-group2\"\r\n          class=\"form-control\"\r\n          placeholder=\"Search Categories\"\r\n          [(ngModel)]=\"term\"\r\n        />\r\n        <span class=\"input-group-append\">\r\n          <button type=\"button\" class=\"btn btn-primary btn-pill\">\r\n            <i class=\"fa fa-search\"></i> Search\r\n          </button>\r\n        </span>\r\n      </div>\r\n      <button\r\n        type=\"button\"\r\n        class=\"btn btn-pill btn-secondary mr-1 col-md-3\"\r\n        data-toggle=\"modal\"\r\n        (click)=\"myModal.show()\"\r\n      >\r\n        Add New Category\r\n      </button>\r\n    </div>\r\n    <table class=\"table table-striped\">\r\n      <thead>\r\n        <tr>\r\n          <th>S. No.</th>\r\n          <th>Category</th>\r\n          <th>Description</th>\r\n          <th>status</th>\r\n          <th>update</th>\r\n        </tr>\r\n      </thead>\r\n      <tbody>\r\n        <tr\r\n          *ngFor=\"let category of categories | filter:term | paginate\r\n        : {\r\n            itemsPerPage: 10,\r\n            currentPage: p,\r\n            totalItems: categories.length\r\n          }; let i = index;\"\r\n        >\r\n          <td>{{ i + 1 }}</td>\r\n          <td>{{ category?.category }}</td>\r\n          <td>{{ category?.desc }}</td>\r\n          <td>\r\n            <span\r\n              class=\"badge\"\r\n              [class.badge-success]=\"category?.status\"\r\n              [class.badge-danger]=\"!category?.status\"\r\n              >{{ category?.status ? \"Available\" : \"NotAvailable\" }}</span\r\n            >\r\n          </td>\r\n          <td>\r\n            <div class=\"update row\">\r\n              <button class=\"btn btn-sm btn-secondary btn-pill\">Edit</button>\r\n              <button\r\n                class=\"btn btn-sm btn-danger btn-pill\"\r\n                (click)=\"deletCategory(category._id)\"\r\n              >\r\n                <span class=\"cil-trash\"></span>\r\n              </button>\r\n            </div>\r\n          </td>\r\n        </tr>\r\n      </tbody>\r\n    </table>\r\n  </div>\r\n  <div class=\"card-footer\">\r\n    <pagination-controls\r\n      (pageChange)=\"handlePageChange($event)\"\r\n    ></pagination-controls>\r\n  </div>\r\n</div>\r\n");
+/* harmony default export */ __webpack_exports__["default"] = ("\n\n<div class=\"notification-alert\" *ngFor=\"let alert of alertsDismiss\" style=\"position: absolute; left: 0; right: 0; margin: auto; z-index: 999999 !important; width: 20%;\">\n  <alert [type]=\"alert.type\" dismissOnTimeout=\"5000\" [dismissible]=\"true\"\n    ><strong>{{alert?.message}}</strong></alert\n  >\n</div>\n<div\n  bsModal\n  #myModal=\"bs-modal\"\n  class=\"modal fade\"\n  tabindex=\"-1\"\n  role=\"dialog\"\n  aria-labelledby=\"myModalLabel\"\n  aria-hidden=\"true\"\n  [config]=\"config\"\n\n>\n  <div class=\"modal-dialog\" role=\"document\">\n    <div class=\"modal-content\">\n      <div class=\"modal-header card-header\">\n        <h4 class=\"modal-title\">Add New category</h4>\n        <button\n          type=\"button\"\n          class=\"close\"\n          (click)=\"myModal.hide()\"\n          aria-label=\"Close\"\n        >\n          <span aria-hidden=\"true\">&times;</span>\n        </button>\n      </div>\n      <div\n        class=\"modal-body\"\n        id=\"medicineAddForm\"\n        [formGroup]=\"addCategoryForm\"\n      >\n        <div class=\"form-group row\" style=\"margin: 20px\">\n          <div class=\"col-md-5\">\n            <div class=\"form-group\">\n              <label for=\"desc\">Description</label>\n              <input\n                class=\"form-control\"\n                id=\"desc\"\n                type=\"text\"\n                name=\"desc\"\n                placeholder=\"desc\"\n                formControlName=\"desc\"\n                required\n              />\n            </div>\n            <div class=\"form-group\">\n              <label for=\"company\">Status</label>\n              <select\n                id=\"select1\"\n                name=\"select1\"\n                class=\"form-control\"\n                placeholder=\"Select Status\"\n                (change)=\"onChang($event)\"\n              >\n                <option value=\"0\">Select Status</option>\n                <option [value]=\"true\">Available</option>\n                <option [value]=\"false\">Not Available</option>\n              </select>\n            </div>\n          </div>\n          <div class=\"col-md-5\">\n            <div class=\"form-group\">\n              <label for=\"company\">Category</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"company\"\n                placeholder=\"category\"\n                formControlName=\"category\"\n              />\n            </div>\n\n            <div class=\"form-group\">\n              <label for=\"company\">Other</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"other\"\n                formControlName=\"other\"\n              />\n            </div>\n          </div>\n        </div>\n      </div>\n      <div class=\"card-footer\">\n        <button\n          type=\"submit\"\n          class=\"btn btn-primary col-md-3\"\n          (click)=\"submit()\"\n          type=\"submit\"\n          form:submit\n        >\n          <i class=\"fa fa-dot-circle-o\"></i> Add\n        </button>\n        <button type=\"reset\" class=\"btn btn-danger col-md-3\" (click)=\"reSet()\">\n          <i class=\"fa fa-ban\"></i> Reset\n        </button>\n        <button\n          type=\"button\"\n          class=\"btn btn-secondary col-md-3\"\n          (click)=\"myModal.hide()\"\n        >\n          Close\n        </button>\n      </div>\n    </div>\n    <!-- /.modal-content -->\n  </div>\n  <!-- /.modal-dialog -->\n</div>\n\n<div\n  bsModal\n  #updateModal=\"bs-modal\"\n  class=\"modal fade\"\n  tabindex=\"-1\"\n  role=\"dialog\"\n  aria-labelledby=\"updateModalLabel\"\n  aria-hidden=\"true\"\n  [config]=\"config\"\n\n>\n  <div class=\"modal-dialog\" role=\"document\">\n    <div class=\"modal-content\">\n      <div class=\"modal-header card-header\">\n        <h4 class=\"modal-title\">Update {{editCategory.category}}</h4>\n        <button\n          type=\"button\"\n          class=\"close\"\n          (click)=\"updateModal.hide()\"\n          aria-label=\"Close\"\n        >\n          <span aria-hidden=\"true\">&times;</span>\n        </button>\n      </div>\n      <div\n        class=\"modal-body\"\n        id=\"medicineAddForm\"\n      >\n        <div class=\"form-group row\" style=\"margin: 20px\">\n          <div class=\"col-md-5\">\n            <div class=\"form-group\">\n              <label for=\"desc\">Description</label>\n              <input\n                class=\"form-control\"\n                id=\"desc1\"\n                type=\"text\"\n                name=\"desc\"\n                placeholder=\"desc\"\n                [(ngModel)] = \"editCategory.desc\"\n                required\n              />\n            </div>\n            <div class=\"form-group\">\n              <label for=\"company1\">Status</label>\n              <select\n                id=\"select1\"\n                name=\"select1\"\n                class=\"form-control\"\n                placeholder=\"Select Status\"\n                (change)=\"onChang($event)\"\n                [(ngModel)] = \"editCategory.status\"\n\n              >\n                <option [value]=\"true\">Available</option>\n                <option [value]=\"false\">Not Available</option>\n              </select>\n            </div>\n          </div>\n          <div class=\"col-md-5\">\n            <div class=\"form-group\">\n              <label for=\"company\">Category</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"company1\"\n                placeholder=\"category\"\n                [(ngModel)] = \"editCategory.category\"\n\n              />\n            </div>\n\n            <div class=\"form-group\">\n              <label for=\"company1\">Other</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"other1\"\n                [(ngModel)] = \"editCategory.other\"\n\n              />\n            </div>\n          </div>\n        </div>\n      </div>\n      <div class=\"card-footer\">\n        <button\n          type=\"submit\"\n          class=\"btn btn-primary col-md-3\"\n          (click)=\"submitUpdate()\"\n        >\n          <i class=\"fa fa-dot-circle-o\"></i> Update\n        </button>\n        <button\n          type=\"button\"\n          class=\"btn btn-secondary col-md-3\"\n          (click)=\"updateModal.hide()\"\n        >\n          Close\n        </button>\n      </div>\n    </div>\n    <!-- /.modal-content -->\n  </div>\n  <!-- /.modal-dialog -->\n</div>\n<!-- /.modal -->\n\n<div class=\"card\" style=\"margin-top: 30px;\">\n  <div class=\"card-header\">\n    <h6>Available Categories</h6>\n  </div>\n  <div class=\"card-body\">\n    <div class=\"header row\" style=\"margin-bottom: 20px\">\n      <div class=\"input-group col-md-3\">\n        <input\n          type=\"text\"\n          id=\"input1-group2\"\n          name=\"input1-group2\"\n          class=\"form-control\"\n          placeholder=\"Search Categories\"\n          [(ngModel)]=\"searchTerm\"\n          (ngModelChange)=\"searchCatg($event)\"\n        />\n        <span class=\"input-group-append\">\n          <button type=\"button\" class=\"btn btn-primary btn-pill\">\n            <i class=\"fa fa-search\"></i> Search\n          </button>\n        </span>\n      </div>\n      <button\n        type=\"button\"\n        class=\"btn btn-pill btn-secondary mr-1 col-md-3\"\n        data-toggle=\"modal\"\n        (click)=\"myModal.show()\"\n      >\n        Add New Category\n      </button>\n    </div>\n    <table class=\"table table-striped\">\n      <thead>\n        <tr>\n          <th>S. No.</th>\n          <th>Category</th>\n          <th>Description</th>\n          <th>status</th>\n          <th>update</th>\n        </tr>\n      </thead>\n      <tbody>\n        <tr\n          *ngFor=\"let category of categories | paginate\n        : {\n            itemsPerPage: 10,\n            currentPage: p,\n            totalItems: totalCatg\n          }; let i = index;\"\n        >\n          <td>{{ i + 1 }}</td>\n          <td>{{ category?.category }}</td>\n          <td>{{ category?.desc }}</td>\n          <td>\n            <span\n              class=\"badge\"\n              [class.badge-success]=\"category?.status\"\n              [class.badge-danger]=\"!category?.status\"\n              >{{ category?.status ? \"Available\" : \"NotAvailable\" }}</span\n            >\n          </td>\n          <td>\n            <div class=\"update row\">\n              <button class=\"btn btn-sm btn-secondary btn-pill\" (click) =\"openUpdate(category)\">Edit</button>\n              <button\n                class=\"btn btn-sm btn-danger btn-pill\"\n                (click)=\"deletCategory(category._id)\"\n              >\n                <span class=\"cil-trash\"></span>\n              </button>\n            </div>\n          </td>\n        </tr>\n      </tbody>\n    </table>\n  </div>\n  <div class=\"card-footer\">\n    <pagination-controls\n      (pageChange)=\"handlePageChange($event)\"\n    ></pagination-controls>\n  </div>\n</div>\n");
 
 /***/ }),
 
@@ -161,7 +203,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var ngx_bootstrap_modal__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ngx-bootstrap/modal */ "LqlI");
 /* harmony import */ var _angular_forms__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @angular/forms */ "s7LF");
 /* harmony import */ var ng2_search_filter__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ng2-search-filter */ "KeVr");
-/* harmony import */ var ngx_pagination__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ngx-pagination */ "xkgV");
+/* harmony import */ var ngx_pagination__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ngx-pagination */ "oOf3");
 /* harmony import */ var ngx_bootstrap_alert__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ngx-bootstrap/alert */ "CNMR");
 
 

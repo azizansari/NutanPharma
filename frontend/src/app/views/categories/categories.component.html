@@ -13,6 +13,8 @@
   role="dialog"
   aria-labelledby="myModalLabel"
   aria-hidden="true"
+  [config]="config"
+
 >
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -111,6 +113,112 @@
   </div>
   <!-- /.modal-dialog -->
 </div>
+
+<div
+  bsModal
+  #updateModal="bs-modal"
+  class="modal fade"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="updateModalLabel"
+  aria-hidden="true"
+  [config]="config"
+
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header card-header">
+        <h4 class="modal-title">Update {{editCategory.category}}</h4>
+        <button
+          type="button"
+          class="close"
+          (click)="updateModal.hide()"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div
+        class="modal-body"
+        id="medicineAddForm"
+      >
+        <div class="form-group row" style="margin: 20px">
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="desc">Description</label>
+              <input
+                class="form-control"
+                id="desc1"
+                type="text"
+                name="desc"
+                placeholder="desc"
+                [(ngModel)] = "editCategory.desc"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="company1">Status</label>
+              <select
+                id="select1"
+                name="select1"
+                class="form-control"
+                placeholder="Select Status"
+                (change)="onChang($event)"
+                [(ngModel)] = "editCategory.status"
+
+              >
+                <option [value]="true">Available</option>
+                <option [value]="false">Not Available</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="company">Category</label>
+              <input
+                type="text"
+                class="form-control"
+                id="company1"
+                placeholder="category"
+                [(ngModel)] = "editCategory.category"
+
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="company1">Other</label>
+              <input
+                type="text"
+                class="form-control"
+                id="other1"
+                [(ngModel)] = "editCategory.other"
+
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button
+          type="submit"
+          class="btn btn-primary col-md-3"
+          (click)="submitUpdate()"
+        >
+          <i class="fa fa-dot-circle-o"></i> Update
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary col-md-3"
+          (click)="updateModal.hide()"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
 <!-- /.modal -->
 
 <div class="card" style="margin-top: 30px;">
@@ -126,7 +234,8 @@
           name="input1-group2"
           class="form-control"
           placeholder="Search Categories"
-          [(ngModel)]="term"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="searchCatg($event)"
         />
         <span class="input-group-append">
           <button type="button" class="btn btn-primary btn-pill">
@@ -155,11 +264,11 @@
       </thead>
       <tbody>
         <tr
-          *ngFor="let category of categories | filter:term | paginate
+          *ngFor="let category of categories | paginate
         : {
             itemsPerPage: 10,
             currentPage: p,
-            totalItems: categories.length
+            totalItems: totalCatg
           }; let i = index;"
         >
           <td>{{ i + 1 }}</td>
@@ -175,7 +284,7 @@
           </td>
           <td>
             <div class="update row">
-              <button class="btn btn-sm btn-secondary btn-pill">Edit</button>
+              <button class="btn btn-sm btn-secondary btn-pill" (click) ="openUpdate(category)">Edit</button>
               <button
                 class="btn btn-sm btn-danger btn-pill"
                 (click)="deletCategory(category._id)"

@@ -184,14 +184,17 @@ let BrandService = class BrandService {
         this.http = http;
         this.apiUrl = _environments_environment__WEBPACK_IMPORTED_MODULE_3__["environment"].apiUrl;
     }
-    getBrands() {
-        return this.http.get(`${this.apiUrl}api/c/brands`);
+    getBrands(data) {
+        return this.http.get(`${this.apiUrl}api/c/brands?${data}`);
     }
     deleteBrand(id) {
         return this.http.delete(`${this.apiUrl}api/c/brands/${id}`);
     }
     postBrand(payload) {
         return this.http.post(`${this.apiUrl}api/c/brands/create`, payload);
+    }
+    updateBrand(id, payload) {
+        return this.http.put(`${this.apiUrl}api/c/brands/${id}`, payload);
     }
 };
 BrandService.ctorParameters = () => [
@@ -231,14 +234,17 @@ let CategoriesService = class CategoriesService {
         this.http = http;
         this.apiUrl = _environments_environment__WEBPACK_IMPORTED_MODULE_3__["environment"].apiUrl;
     }
-    getCategories() {
-        return this.http.get(`${this.apiUrl}api/c/categories`);
+    getCategories(data) {
+        return this.http.get(`${this.apiUrl}api/c/categories?${data}`);
     }
     deleteCategory(id) {
         return this.http.delete(`${this.apiUrl}api/c/categories/${id}`);
     }
     postCategory(payload) {
         return this.http.post(`${this.apiUrl}api/c/categories/create`, payload);
+    }
+    updateCategory(id, payload) {
+        return this.http.put(`${this.apiUrl}api/c/categories/${id}`, payload);
     }
 };
 CategoriesService.ctorParameters = () => [

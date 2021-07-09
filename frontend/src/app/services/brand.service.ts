@@ -8,8 +8,8 @@ export class BrandService {
   public apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
-  getBrands(){
-    return this.http.get(`${this.apiUrl}api/c/brands`);
+  getBrands(data?){
+    return this.http.get(`${this.apiUrl}api/c/brands?${data}`);
   }
 
   deleteBrand(id) {
@@ -17,5 +17,8 @@ export class BrandService {
   }
   postBrand(payload){
     return this.http.post(`${this.apiUrl}api/c/brands/create`, payload);
+  }
+  updateBrand(id, payload){
+    return this.http.put(`${this.apiUrl}api/c/brands/${id}`, payload)
   }
 }

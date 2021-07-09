@@ -5,6 +5,7 @@ import { Response } from "../../interfaces/response";
 import { MedicineService } from "../../services/medicine.service";
 import { OrdersService } from "../../services/orders.service";
 import { ModalDirective } from "ngx-bootstrap/modal";
+declare let swal : any
 @Component({
   selector: "app-orders",
   templateUrl: "./orders.component.html",
@@ -15,11 +16,16 @@ export class OrdersComponent implements OnInit, OnDestroy {
   medicines = [];
   orders = [];
   alertsDismiss: any = [];
+  searchTerm;
   public orderForm: FormGroup;
   public submitted = false;
+  totalOrders;
+  config = {
+    backdrop : 'static'
+  }
   @ViewChild("orderDateIN") _orderDate;
   @ViewChild("largeModal") public myModal: ModalDirective;
-
+  
   constructor(
     private medServ: MedicineService,
     private orderserv: OrdersService,
@@ -27,31 +33,44 @@ export class OrdersComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.getMedicines();
-    this.getOrders();
+    this.getOrders(1);
     setTimeout(() => {
       console.log("this._orderDate: ", this._orderDate);
       this._orderDate.nativeElement.valueAsDate = new Date();
     }, 1000);
   }
 
-  getMedicines() {
-    this.medServ.getMedicines().subscribe((res: Response) => {
-      console.log("res: >>>>>>>>>>>>", res);
+  getMedicines(e) {
+    this.medServ.getMedicines(`search=${e.target.value}`).subscribe((res: Response) => {
       this.medicines = res.data;
-      console.log(this.medicines);
+      console.log(this.medicines, e.target.value);
     });
   }
-  getOrders() {
-    this.orderserv.getOrders().subscribe((res: Response) => {
+  getOrders(page) {
+    this.orderserv.getOrders(`skip=${page*10 -10}&limit=10`).subscribe((res: Response) => {
       this.orders = res.data;
+      this.totalOrders = res['total']
       console.log(this.orders);
     });
   }
-  deleteOrder(id) {
-    this.orderserv.deleteOrder(id).subscribe((resp) => {
-      this.getOrders();
+  searchOrd(e){
+    this.orderserv.getOrders(`search=${this.searchTerm}&limit=10`).subscribe((res: Response) => {
+      this.orders = res['data'];
+      this.totalOrders = res['total']
+      this.p = 1
     });
+  }
+  deleteOrder(id) {
+    swal({text : "Do you want to delete this Bill", icon  : 'warning', buttons: true, dangerMode: true,})
+    .then((del)=>{
+      if(del){
+        this.orderserv.deleteOrder(id).subscribe((resp) => {
+        this.getOrders(1);
+        swal({text : "Bill deleted successfully", icon  : 'success'});
+        });
+      }
+    })
+
   }
   handlePageChange(event) {
     this.p = event;
@@ -126,31 +145,42 @@ export class OrdersComponent implements OnInit, OnDestroy {
   @ViewChild("select1") select1;
   onAdd() {
     if (this.orderQuantity) {
-      this.localMedicine = {
-        brand: this.medicine.brand,
-        batchNo: this.medicine.batchNo,
-        expiry: this.medicine.expiry,
-        pcaking: this.medicine.packing,
-        medicine: this.medicine.productName,
-        mrp: this.rate,
-        orderQuantity: this.orderQuantity,
-        total: this.total,
-        medicine_id: this.medicine._id,
-      };
-      this.orderList.push(this.localMedicine);
-      console.log(this.orderList);
-      this.rate = "";
-      this.quantity = "";
-      this.orderQuantity = "";
-      this.subTotal =
-        this.subTotal + this.orderList[this.orderList.length - 1].total;
-      console.log(this.subTotal);
-      console.log("check>>>", this.select1);
-      this.subTotal = 0;
-      this.orderTotal();
+      if(this.orderQuantity <= this.medicine.quantity){
+        this.localMedicine = {
+          brand: this.medicine.brand,
+          batchNo: this.medicine.batchNo,
+          expiry: this.medicine.expiry,
+          pcaking: this.medicine.packing,
+          medicine: this.medicine.productName,
+          mrp: this.rate,
+          orderQuantity: this.orderQuantity,
+          total: this.total,
+          medicine_id: this.medicine._id,
+          qty : this.medicine.quantity
+        };
+        this.orderList.push(this.localMedicine);
+        console.log(this.orderList);
+        this.rate = "";
+        this.quantity = "";
+        this.orderQuantity = "";
+        this.subTotal =
+          this.subTotal + this.orderList[this.orderList.length - 1].total;
+        console.log(this.subTotal);
+        console.log("check>>>", this.select1);
+        this.subTotal = 0;
+        this.orderTotal();
+        var setQty = (this.medicine.quantity - this.localMedicine['orderQuantity'])
+  
+        this.updateMed(this.medicine._id, setQty)
+      }else{
+        swal({text : "Insufficient Stock", icon  : 'info'});
+        
+      }
+
     }
     else{
-      this.alertNot("danger", "Please add order quantity");
+      swal({text : "Please add order quantity", icon  : 'info'});
+
     }
   }
 
@@ -165,9 +195,13 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
 
   removeItem(id) {
+    var removedItem = this.orderList.find((itm)=> itm.medicine_id == id)
     this.orderList = this.orderList.filter((orderitem) => id != orderitem.medicine_id);
     this.subTotal = 0;
     this.orderTotal();
+    var updateQty = removedItem.qty
+    console.log(">>update", removedItem)
+    this.updateMed(id, updateQty)
   }
   isValid(valObj) {
     var check = false;
@@ -188,8 +222,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
             console.log("success", resp);
             this.reSet();
             this.myModal.hide();
-            this.alertNot("success", "Success");
-            this.getOrders();
+            swal({text : "Order has been placed successfully", icon  : 'success'});
+            this.getOrders(1);
           }
         },
         (err) => {
@@ -198,12 +232,25 @@ export class OrdersComponent implements OnInit, OnDestroy {
       );
     }
     else{
-      this.alertNot("danger", "Please enter all the details");
+      swal({text : "Please enter all the details", icon  : 'info'});
+
     }
   }
 
   ngOnDestroy() {}
+  updateMed(id, data){
+    var status = true
+    var q = data
+    if(data <= 0){
+      status = false
+      q = 0
+    }
+    this.medicines = []
+    this.medServ.updateMedicine(id, {quantity : q, status : status}).subscribe((res: Response) => {
+      console.log("res: >>>>>>>>>>>>", res);
+    });
 
+  }
   reSet() {
     this.customerContact = "";
     this.customerName = "";

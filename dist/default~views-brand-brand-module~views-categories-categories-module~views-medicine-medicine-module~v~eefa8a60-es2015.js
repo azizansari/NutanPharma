@@ -106,10 +106,10 @@ Ng2SearchPipeModule.ctorParameters = () => [];
 
 /***/ }),
 
-/***/ "xkgV":
-/*!************************************************************!*\
-  !*** ./node_modules/ngx-pagination/dist/ngx-pagination.js ***!
-  \************************************************************/
+/***/ "oOf3":
+/*!*************************************************************************!*\
+  !*** ./node_modules/ngx-pagination/__ivy_ngcc__/dist/ngx-pagination.js ***!
+  \*************************************************************************/
 /*! exports provided: ɵb, ɵa, NgxPaginationModule, PaginationService, PaginationControlsComponent, PaginationControlsDirective, PaginatePipe */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 

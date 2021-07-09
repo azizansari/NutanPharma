@@ -12,9 +12,29 @@ const list = (Models) => async (req, res, next) => {
 
   try {
     const query = {};
-    if (search) {
-      _.extend(query, { title: new RegExp(`${search}`, 'i') })
+    if(collection == 'medicine'){
+      if (search) {
+        _.extend(query, { $or : [ {productName: new RegExp(`${search}`, 'i'),},{ brand: new RegExp(`${search}`, 'i')},  {categories: new RegExp(`${search}`, 'i')}, {batchNo: new RegExp(`${search}`, 'i')}] })
+      }
+    } 
+    else if(collection == 'brands'){
+      console.log(">>>>search", search)
+      if (search) {
+        _.extend(query, { $or : [ {brand: new RegExp(`${search}`, 'i'),},{ desc: new RegExp(`${search}`, 'i')},  {other: new RegExp(`${search}`, 'i')}] })
+      }
     }
+    else if(collection == 'categories'){
+      if (search) {
+        _.extend(query, { $or : [ {category: new RegExp(`${search}`, 'i'),},{ desc: new RegExp(`${search}`, 'i')},  {other: new RegExp(`${search}`, 'i')}] })
+      }
+    } 
+    else if(collection == 'orders'){
+      if (search) {
+        _.extend(query, { $or : [ {customerName: new RegExp(`${search}`, 'i'),}] })
+      }
+    }
+
+    console.log(collection)
     const total = await Models[collection].count();
     const data = await Models[collection].find(query)
       .skip(skip)

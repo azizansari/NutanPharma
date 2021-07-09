@@ -14,6 +14,7 @@
   role="dialog"
   aria-labelledby="myModalLabel"
   aria-hidden="true"
+  [config]="config"
 >
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -84,8 +85,10 @@
                   <div class="form-group">
                     <ng-select
                       #select1
+                      style="width: 150px;"
                       name="select1"
                       class="form-control custom"
+                      (keypress)="getMedicines($event)"          
                       (change)="onChange($event)"
                     >
                       <ng-option
@@ -93,7 +96,18 @@
                         [value]="medicine?._id"
 
                       >
-                        {{ medicine?.productName }}
+                      <span style="font-size: 14px; font-weight: bold;">{{ medicine?.productName }}
+                      </span>
+                        <span 
+                        class="badge badge-primary badge-pill"
+                        style="color: white;"
+                        >{{ medicine?.brand }}</span>
+                        <span
+                        class="badge badge-pill"
+                        [class.badge-success]="medicine?.status"
+                        [class.badge-danger]="!medicine?.status"
+                        >{{ medicine?.status ? "Avail" : "NotAvail" }}</span
+                      >
                       </ng-option>
                     </ng-select>
 
@@ -306,7 +320,8 @@
           name="input1-group2"
           class="form-control"
           placeholder="Search Orders"
-          [(ngModel)]="term"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="searchOrd($event)"
         />
         <span class="input-group-append">
           <button type="button" class="btn btn-primary btn-pill">
@@ -339,12 +354,11 @@
         <tr
           *ngFor="
             let order of orders
-              | filter: term
               | paginate
                 : {
                     itemsPerPage: 10,
                     currentPage: p,
-                    totalItems: orders.length
+                    totalItems: totalOrders
                   };
             let i = index
           "

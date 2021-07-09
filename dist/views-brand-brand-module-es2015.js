@@ -19,7 +19,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @angular/common */ "SVse");
 /* harmony import */ var _angular_forms__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @angular/forms */ "s7LF");
 /* harmony import */ var ng2_search_filter__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ng2-search-filter */ "KeVr");
-/* harmony import */ var ngx_pagination__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ngx-pagination */ "xkgV");
+/* harmony import */ var ngx_pagination__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ngx-pagination */ "oOf3");
 /* harmony import */ var ngx_bootstrap_alert__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ngx-bootstrap/alert */ "CNMR");
 
 
@@ -104,7 +104,7 @@ BrandRoutingModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ("<div class=\"notification-alert\" *ngFor=\"let alert of alertsDismiss\" style=\"position: absolute; left: 0; right: 0; margin: auto; z-index: 999999 !important; width: 20%;\">\r\n  <alert [type]=\"alert.type\" dismissOnTimeout=\"5000\" [dismissible]=\"true\"\r\n    ><strong>{{alert?.message}}</strong></alert\r\n  >\r\n</div>\r\n<div\r\n  bsModal\r\n  #myModal=\"bs-modal\"\r\n  class=\"modal fade\"\r\n  tabindex=\"-1\"\r\n  role=\"dialog\"\r\n  aria-labelledby=\"myModalLabel\"\r\n  aria-hidden=\"true\"\r\n>\r\n  <div class=\"modal-dialog\" role=\"document\">\r\n    <div class=\"modal-content\">\r\n      <div class=\"modal-header card-header\">\r\n        <h4 class=\"modal-title\">Add New Brand</h4>\r\n        <button\r\n          type=\"button\"\r\n          class=\"close\"\r\n          (click)=\"myModal.hide()\"\r\n          aria-label=\"Close\"\r\n        >\r\n          <span aria-hidden=\"true\">&times;</span>\r\n        </button>\r\n      </div>\r\n      <div class=\"modal-body\" id=\"medicineAddForm\" [formGroup]=\"addBrandForm\">\r\n        <div class=\"form-group row\" style=\"margin: 20px\">\r\n          <div class=\"col-md-5\">\r\n            <div class=\"form-group\">\r\n              <label for=\"date-input\">Description</label>\r\n              <input\r\n                class=\"form-control\"\r\n                id=\"date-input\"\r\n                type=\"text\"\r\n                name=\"date-input\"\r\n                placeholder=\"desc\"\r\n                formControlName=\"desc\"\r\n              />\r\n            </div>\r\n            <div class=\"form-group\">\r\n              <label for=\"company\">Status</label>\r\n              <select\r\n                id=\"select1\"\r\n                name=\"select1\"\r\n                class=\"form-control\"\r\n                placeholder=\"Select Status\"\r\n                (change)=\"onChang($event)\"\r\n              >\r\n                <option value=\"0\">Select Status</option>\r\n                <option [value]=\"true\">Available</option>\r\n                <option [value]=\"false\">Not Available</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n          <div class=\"col-md-5\">\r\n            <div class=\"form-group\">\r\n              <label for=\"company\">Brand</label>\r\n              <input\r\n                type=\"text\"\r\n                class=\"form-control\"\r\n                id=\"company\"\r\n                placeholder=\"brand\"\r\n                formControlName=\"brand\"\r\n              />\r\n            </div>\r\n\r\n            <div class=\"form-group\">\r\n              <label for=\"company\">Other</label>\r\n              <input\r\n                type=\"text\"\r\n                class=\"form-control\"\r\n                id=\"MRP\"\r\n                formControlName=\"other\"\r\n              />\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n      <div class=\"card-footer\">\r\n        <button\r\n          type=\"submit\"\r\n          class=\"btn btn-primary col-md-3\"\r\n          (click)=\"submit()\"\r\n          type=\"submit\"\r\n          form:submit\r\n        >\r\n          <i class=\"fa fa-dot-circle-o\"></i> Add\r\n        </button>\r\n        <button type=\"reset\" class=\"btn btn-danger col-md-3\" (click)=\"reSet()\">\r\n          <i class=\"fa fa-ban\"></i> Reset\r\n        </button>\r\n        <button\r\n          type=\"button\"\r\n          class=\"btn btn-secondary col-md-3\"\r\n          (click)=\"myModal.hide()\"\r\n        >\r\n          Close\r\n        </button>\r\n      </div>\r\n    </div>\r\n    <!-- /.modal-content -->\r\n  </div>\r\n  <!-- /.modal-dialog -->\r\n</div>\r\n<!-- /.modal -->\r\n\r\n<div class=\"card\" style=\"margin-top: 30px\">\r\n  <div class=\"card-header\">\r\n    <h6>Available Brands</h6>\r\n  </div>\r\n  <div class=\"card-body\">\r\n    <div class=\"header row\" style=\"margin-bottom: 20px\">\r\n      <div class=\"input-group col-md-3\">\r\n        <input\r\n          type=\"text\"\r\n          id=\"input1-group2\"\r\n          name=\"input1-group2\"\r\n          class=\"form-control\"\r\n          placeholder=\"Search Brands\"\r\n          [(ngModel)]=\"term\"\r\n        />\r\n        <span class=\"input-group-append\">\r\n          <button type=\"button\" class=\"btn btn-primary btn-pill\">\r\n            <i class=\"fa fa-search\"></i> Search\r\n          </button>\r\n        </span>\r\n      </div>\r\n      <button\r\n        type=\"button\"\r\n        class=\"btn btn-pill btn-secondary mr-1 col-md-3\"\r\n        data-toggle=\"modal\"\r\n        (click)=\"myModal.show()\"\r\n      >\r\n        Add New Brand\r\n      </button>\r\n    </div>\r\n    <table class=\"table table-striped\">\r\n      <thead>\r\n        <tr>\r\n          <th>S. No.</th>\r\n          <th>Brand Name</th>\r\n          <th>Description</th>\r\n          <th>status</th>\r\n          <th>update</th>\r\n        </tr>\r\n      </thead>\r\n      <tbody>\r\n        <tr\r\n          *ngFor=\"\r\n            let brand of brands\r\n              | filter: term\r\n              | paginate\r\n                : {\r\n                    itemsPerPage: 10,\r\n                    currentPage: p,\r\n                    totalItems: brands.length\r\n                  };\r\n            let i = index\r\n          \"\r\n        >\r\n          <td>{{ i + 1 }}</td>\r\n          <td>{{ brand?.brand }}</td>\r\n          <td>{{ brand?.desc }}</td>\r\n          <td>\r\n            <span\r\n              class=\"badge\"\r\n              [class.badge-success]=\"brand?.status\"\r\n              [class.badge-danger]=\"!brand?.status\"\r\n              >{{ brand?.status ? \"Available\" : \"NotAvailable\" }}</span\r\n            >\r\n          </td>\r\n          <td>\r\n            <div class=\"update row\">\r\n              <button class=\"btn btn-sm btn-secondary btn-pill\">Edit</button>\r\n              <button\r\n                class=\"btn btn-sm btn-danger btn-pill\"\r\n                (click)=\"deleteBrands(brand._id)\"\r\n              >\r\n                <span class=\"cil-trash\"></span>\r\n              </button>\r\n            </div>\r\n          </td>\r\n        </tr>\r\n      </tbody>\r\n    </table>\r\n  </div>\r\n  <div class=\"card-footer\">\r\n    <pagination-controls\r\n      (pageChange)=\"handlePageChange($event)\"\r\n    ></pagination-controls>\r\n  </div>\r\n</div>\r\n");
+/* harmony default export */ __webpack_exports__["default"] = ("<div class=\"notification-alert\" *ngFor=\"let alert of alertsDismiss\" style=\"position: absolute; left: 0; right: 0; margin: auto; z-index: 999999 !important; width: 20%;\">\n  <alert [type]=\"alert.type\" dismissOnTimeout=\"5000\" [dismissible]=\"true\"\n    ><strong>{{alert?.message}}</strong></alert\n  >\n</div>\n<div\n  bsModal\n  #myModal=\"bs-modal\"\n  class=\"modal fade\"\n  tabindex=\"-1\"\n  role=\"dialog\"\n  aria-labelledby=\"myModalLabel\"\n  aria-hidden=\"true\"\n  [config]=\"config\"\n\n>\n  <div class=\"modal-dialog\" role=\"document\">\n    <div class=\"modal-content\">\n      <div class=\"modal-header card-header\">\n        <h4 class=\"modal-title\">Add New Brand</h4>\n        <button\n          type=\"button\"\n          class=\"close\"\n          (click)=\"myModal.hide()\"\n          aria-label=\"Close\"\n        >\n          <span aria-hidden=\"true\">&times;</span>\n        </button>\n      </div>\n      <div class=\"modal-body\" id=\"medicineAddForm\" [formGroup]=\"addBrandForm\">\n        <div class=\"form-group row\" style=\"margin: 20px\">\n          <div class=\"col-md-5\">\n            <div class=\"form-group\">\n              <label for=\"date-input\">Description</label>\n              <input\n                class=\"form-control\"\n                id=\"date-input\"\n                type=\"text\"\n                name=\"date-input\"\n                placeholder=\"desc\"\n                formControlName=\"desc\"\n              />\n            </div>\n            <div class=\"form-group\">\n              <label for=\"company\">Status</label>\n              <select\n                id=\"select1\"\n                name=\"select1\"\n                class=\"form-control\"\n                placeholder=\"Select Status\"\n                (change)=\"onChang($event)\"\n              >\n                <option value=\"0\">Select Status</option>\n                <option [value]=\"true\">Available</option>\n                <option [value]=\"false\">Not Available</option>\n              </select>\n            </div>\n          </div>\n          <div class=\"col-md-5\">\n            <div class=\"form-group\">\n              <label for=\"company\">Brand</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"company\"\n                placeholder=\"brand\"\n                formControlName=\"brand\"\n              />\n            </div>\n\n            <div class=\"form-group\">\n              <label for=\"company\">Other</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"MRP\"\n                formControlName=\"other\"\n              />\n            </div>\n          </div>\n        </div>\n      </div>\n      <div class=\"card-footer\">\n        <button\n          type=\"submit\"\n          class=\"btn btn-primary col-md-3\"\n          (click)=\"submit()\"\n          type=\"submit\"\n          form:submit\n        >\n          <i class=\"fa fa-dot-circle-o\"></i> Add\n        </button>\n        <button type=\"reset\" class=\"btn btn-danger col-md-3\" (click)=\"reSet()\">\n          <i class=\"fa fa-ban\"></i> Reset\n        </button>\n        <button\n          type=\"button\"\n          class=\"btn btn-secondary col-md-3\"\n          (click)=\"myModal.hide()\"\n        >\n          Close\n        </button>\n      </div>\n    </div>\n    <!-- /.modal-content -->\n  </div>\n  <!-- /.modal-dialog -->\n</div>\n<!-- /.modal -->\n<div\n  bsModal\n  #updateModal=\"bs-modal\"\n  class=\"modal fade\"\n  tabindex=\"-1\"\n  role=\"dialog\"\n  aria-labelledby=\"updateModalLabel\"\n  aria-hidden=\"true\"\n  [config]=\"config\"\n\n>\n  <div class=\"modal-dialog\" role=\"document\">\n    <div class=\"modal-content\">\n      <div class=\"modal-header card-header\">\n        <h4 class=\"modal-title\">Add {{editBrand?.brand}} </h4>\n        <button\n          type=\"button\"\n          class=\"close\"\n          (click)=\"updateModal.hide()\"\n          aria-label=\"Close\"\n        >\n          <span aria-hidden=\"true\">&times;</span>\n        </button>\n      </div>\n      <div class=\"modal-body\" id=\"medicineAddForm\" >\n        <div class=\"form-group row\" style=\"margin: 20px\">\n          <div class=\"col-md-5\">\n            <div class=\"form-group\">\n              <label for=\"date-input\">Description</label>\n              <input\n                class=\"form-control\"\n                id=\"date-input1\"\n                type=\"text\"\n                name=\"date-input\"\n                placeholder=\"desc\"\n                [(ngModel)]=\"editBrand.desc\"\n              />\n            </div>\n            <div class=\"form-group\">\n              <label for=\"company\">Status</label>\n              <select\n                id=\"select1\"\n                name=\"select1\"\n                class=\"form-control\"\n                (change)=\"onChang($event)\"\n                [(ngModel)]=\"editBrand.status\"\n              >\n                <option [value]=\"true\">Available</option>\n                <option [value]=\"false\">Not Available</option>\n              </select>\n            </div>\n          </div>\n          <div class=\"col-md-5\">\n            <div class=\"form-group\">\n              <label for=\"company\">Brand</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"company1\"\n                placeholder=\"brand\"\n                [(ngModel)]=\"editBrand.brand\"\n              />\n            </div>\n\n            <div class=\"form-group\">\n              <label for=\"company\">Other</label>\n              <input\n                type=\"text\"\n                class=\"form-control\"\n                id=\"a\"\n                [(ngModel)]=\"editBrand.other\"\n              />\n            </div>\n          </div>\n        </div>\n      </div>\n      <div class=\"card-footer\">\n        <button\n          type=\"submit\"\n          class=\"btn btn-primary col-md-3\"\n          (click)=\"submitUpdate()\"\n          type=\"submit\"\n          form:submit\n        >\n          <i class=\"fa fa-dot-circle-o\"></i> Update\n        </button>\n        <button\n          type=\"button\"\n          class=\"btn btn-secondary col-md-3\"\n          (click)=\"updateModal.hide()\"\n        >\n          Close\n        </button>\n      </div>\n    </div>\n    <!-- /.modal-content -->\n  </div>\n  <!-- /.modal-dialog -->\n</div>\n\n\n<div class=\"card\" style=\"margin-top: 30px\">\n  <div class=\"card-header\">\n    <h6>Available Brands</h6>\n  </div>\n  <div class=\"card-body\">\n    <div class=\"header row\" style=\"margin-bottom: 20px\">\n      <div class=\"input-group col-md-3\">\n        <input\n          type=\"text\"\n          id=\"input1-group2\"\n          name=\"input1-group2\"\n          class=\"form-control\"\n          placeholder=\"Search Brands\"\n          [(ngModel)]=\"searchTerm\"\n          (ngModelChange)=\"searchBrand($event)\"\n\n        />\n        <span class=\"input-group-append\">\n          <button type=\"button\" class=\"btn btn-primary btn-pill\">\n            <i class=\"fa fa-search\"></i> Search\n          </button>\n        </span>\n      </div>\n      <button\n        type=\"button\"\n        class=\"btn btn-pill btn-secondary mr-1 col-md-3\"\n        data-toggle=\"modal\"\n        (click)=\"myModal.show()\"\n      >\n        Add New Brand\n      </button>\n    </div>\n    <table class=\"table table-striped\">\n      <thead>\n        <tr>\n          <th>S. No.</th>\n          <th>Brand Name</th>\n          <th>Description</th>\n          <th>status</th>\n          <th>update</th>\n        </tr>\n      </thead>\n      <tbody>\n        <tr\n          *ngFor=\"\n            let brand of brands\n              | paginate\n                : {\n                    itemsPerPage: 10,\n                    currentPage: p,\n                    totalItems: totalBrands\n                  };\n            let i = index\n          \"\n        >\n          <td>{{ i + 1 }}</td>\n          <td>{{ brand?.brand }}</td>\n          <td>{{ brand?.desc }}</td>\n          <td>\n            <span\n              class=\"badge\"\n              [class.badge-success]=\"brand?.status\"\n              [class.badge-danger]=\"!brand?.status\"\n              >{{ brand?.status ? \"Available\" : \"NotAvailable\" }}</span\n            >\n          </td>\n          <td>\n            <div class=\"update row\">\n              <button class=\"btn btn-sm btn-secondary btn-pill\" (click)=\"openUpdate(brand)\">Edit</button>\n              <button\n                class=\"btn btn-sm btn-danger btn-pill\"\n                (click)=\"deleteBrands(brand._id)\"\n              >\n                <span class=\"cil-trash\"></span>\n              </button>\n            </div>\n          </td>\n        </tr>\n      </tbody>\n    </table>\n  </div>\n  <div class=\"card-footer\">\n    <pagination-controls\n      (pageChange)=\"handlePageChange($event)\"\n    ></pagination-controls>\n  </div>\n</div>\n");
 
 /***/ }),
 
@@ -140,24 +140,43 @@ let BrandComponent = class BrandComponent {
         this.alertsDismiss = [];
         this.brands = [];
         this.p = 1;
+        this.editBrand = {};
+        this.config = {
+            backdrop: 'static'
+        };
         this.status = false;
     }
     ngOnInit() {
-        this.getBrands();
+        this.getBrands(1);
         this.buildForm();
     }
-    getBrands() {
-        this.brandServ.getBrands().subscribe((res) => {
+    getBrands(page) {
+        this.brandServ.getBrands(`skip=${page * 10 - 10}&limit=10`).subscribe((res) => {
             this.brands = res.data;
+            this.totalBrands = res['total'];
+        });
+    }
+    searchBrand(e) {
+        this.brandServ.getBrands(`search=${this.searchTerm}&limit=10`).subscribe((res) => {
+            this.brands = res['data'];
+            this.totalBrands = res['total'];
+            this.p = 1;
         });
     }
     deleteBrands(id) {
-        this.brandServ.deleteBrand(id).subscribe((resp) => {
-            this.getBrands();
+        swal({ text: "Do you want to delete this Brand", icon: 'warning', buttons: true, dangerMode: true, })
+            .then((del) => {
+            if (del) {
+                this.brandServ.deleteBrand(id).subscribe((resp) => {
+                    this.getBrands(this.p);
+                    swal({ text: "Brand deleted successfully", icon: 'success' });
+                });
+            }
         });
     }
     handlePageChange(event) {
         this.p = event;
+        this.getBrands(this.p);
     }
     buildForm() {
         this.addBrandForm = this.fb.group({
@@ -190,20 +209,43 @@ let BrandComponent = class BrandComponent {
             this.submitted = true;
             this.brandServ.postBrand(this.f).subscribe((resp) => {
                 if (resp) {
-                    this.getBrands();
+                    this.getBrands(1);
                     this.addBrandForm.reset();
                     this.alertNot("success", "Success");
+                    swal({ text: "Brand Added successfully", icon: 'success' });
                     this.myModal.hide();
                 }
             });
         }
         else {
-            this.alertNot("danger", "Please enter all the details");
+            swal({ text: "Please enter all the details", icon: 'info' });
         }
         console.log(this.f);
     }
     reSet() {
         this.addBrandForm.reset();
+    }
+    openUpdate(brand) {
+        this.updateModal.show();
+        this.editBrand = brand;
+    }
+    submitUpdate() {
+        console.log(this.editBrand);
+        this.brandServ.updateBrand(this.editBrand['_id'], this.editBrand).subscribe((res) => {
+            console.log("res: >>>>>>>>>>>>", res);
+            if (res) {
+                this.getBrands(this.p);
+                this.updateModal.hide();
+                swal({
+                    title: `${this.editBrand['brand']}`,
+                    text: `Updated successfully`,
+                    icon: 'success'
+                });
+            }
+            else {
+                swal({ text: "Please enter all the details", icon: 'info' });
+            }
+        });
     }
     alertNot(type, message) {
         this.alertsDismiss.push({
@@ -218,7 +260,8 @@ BrandComponent.ctorParameters = () => [
     { type: _angular_forms__WEBPACK_IMPORTED_MODULE_4__["FormBuilder"] }
 ];
 BrandComponent.propDecorators = {
-    myModal: [{ type: _angular_core__WEBPACK_IMPORTED_MODULE_3__["ViewChild"], args: ["myModal",] }]
+    myModal: [{ type: _angular_core__WEBPACK_IMPORTED_MODULE_3__["ViewChild"], args: ["myModal",] }],
+    updateModal: [{ type: _angular_core__WEBPACK_IMPORTED_MODULE_3__["ViewChild"], args: ["updateModal",] }]
 };
 BrandComponent = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_angular_core__WEBPACK_IMPORTED_MODULE_3__["Component"])({
